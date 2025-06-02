@@ -1,0 +1,22 @@
+{
+  "name": "wg-mgmt",
+  "version": "1.0.0-alpha.1",
+  "description": "Wireguard server manager",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/MatthewT95/wg-mgmt.git"
+  },
+  "keywords": [
+    "wireguard"
+  ],
+  "author": "Matthew Taormina",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/MatthewT95/wg-mgmt/issues"
+  },
+  "homepage": "https://github.com/MatthewT95/wg-mgmt#readme"
+}
