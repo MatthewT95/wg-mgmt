@@ -137,3 +137,6 @@ dist
 
 # test scripts
 test/
+
+# User data
+data/
