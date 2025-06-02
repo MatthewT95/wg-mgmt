@@ -18,5 +18,8 @@
   "bugs": {
     "url": "https://github.com/MatthewT95/wg-mgmt/issues"
   },
-  "homepage": "https://github.com/MatthewT95/wg-mgmt#readme"
+  "homepage": "https://github.com/MatthewT95/wg-mgmt#readme",
+  "dependencies": {
+    "express": "^5.1.0"
+  }
 }
