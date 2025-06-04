@@ -101,9 +101,9 @@ async function getRouters(req, res) {
   else {
     response.message = 'Routers retrieved successfully';
   }
-
+  }
   return res.status(200).json(response);
-}
+
 }
 
 async function getRouter(req, res) {
