@@ -2,6 +2,7 @@ const path = require('path');
 const fs = require('fs').promises;
 const fsSync = require('fs');
 const TOML = require('@iarna/toml');
+const { routerStart, routerStop, routerStatus, routerRestart } = require('../utils/router_manager.js');
 
 async function getRouters(req, res) {
 
@@ -167,7 +168,62 @@ async function getRouter(req, res) {
   return res.status(200).json({ id: routerId, routerConfig,lanConfigs:lanConfigs, message: 'Router retrieved successfully' });
 }
 
+
+async function routerUp(req, res) {
+  const routerId = req.params.id;
+  const routerPath = path.join(__dirname, '../data/routers', routerId);
+  const lockFilePath = path.join(routerPath, '.lock');
+
+  // Check if the router directory exists
+  try {
+    await fs.access(routerPath);
+  } catch (err) {
+    return res.status(404).json({ error: `Router with ID ${routerId} does not exist` });
+  }
+
+  // Check if the router is already running
+  try {
+    await fs.access(lockFilePath);
+    return res.status(400).json({ error: `Router with ID ${routerId} is already running` });
+  } catch (err) {
+    // If the lock file does not exist, continue
+  }
+
+  // Create the lock file to indicate that the router is running
+  try {
+    routerStart(routerId);
+    return res.status(200).json({ message: `Router with ID ${routerId} is now running` });
+  } catch (err) {
+    return res.status(500).json({ error: `Error starting router: ${err.message}` });
+  }
+}
+
+async function routerDown(req, res) {
+  const routerId = req.params.id;
+  const routerPath = path.join(__dirname, '../data/routers', routerId);
+  const lockFilePath = path.join(routerPath, '.lock');
+
+  // Check if the router directory exists
+  try {
+    await fs.access(routerPath);
+  } catch (err) {
+    return res.status(404).json({ error: `Router with ID ${routerId} does not exist` });
+  }
+
+  // Check if the router is running
+  try {
+    await fs.access(lockFilePath);
+    routerStop(routerId);
+    return res.status(200).json({ message: `Router with ID ${routerId} is now stopped` });
+  } catch (err) {
+    return res.status(400).json({ error: `Router with ID ${routerId} is not running` });
+  }
+}
+
 module.exports = {
   getRouters,
-  getRouter
+  getRouter,
+  routerUp,
+  routerDown
 };
+
