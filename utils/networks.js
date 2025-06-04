@@ -1,5 +1,4 @@
 const {execSync} = require('child_process');
-const e = require('express');
 
 function createNetworkNamespace(namespace) {
   try {

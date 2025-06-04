@@ -3,7 +3,6 @@ const fs  = require('fs');
 const TOML  = require('@iarna/toml');
 const { generateLANInterfaceConfig } = require('./wg_config.js');
 const path = require('path');
-const { disallowMeshTraffic} = require('../../lib/iptables.js');
 const { createNetworkNamespace ,deleteNetworkNamespace,createWireGuardInterface,interfaceUp,interfaceDown} = require('./networks.js');
 
 function routerStart(router_id) {

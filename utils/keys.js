@@ -1,7 +1,6 @@
 const { exec } = require('child_process');
 const { promises: fs} = require('fs');
 
-
 async function generateWireGuardKeyPair() {
   const privateKeyPath = 'tmp/privatekey';
   const publicKeyPath = 'tmp/publickey';
