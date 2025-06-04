@@ -1,39 +1,30 @@
-const { exec } = require('child_process');
-const { promises: fs} = require('fs');
+const { promisify } = require('util');
+const { exec: _exec } = require('child_process');
+const exec = promisify(_exec);
 
 async function generateWireGuardKeyPair() {
-  const privateKeyPath = 'tmp/privatekey';
-  const publicKeyPath = 'tmp/publickey';
-
-  // Ensure the tmp directory exists
-  try {
-    await fs.mkdir('tmp', { recursive: true });
+  // 1) Generate private key
+  const { stdout: rawPriv, stderr: err1 } = await exec('wg genkey');
+  if (err1) {
+    throw new Error(`Error generating private key: ${err1}`);
   }
-  catch (error) {
-
+  const privateKey = rawPriv.toString().trim();
+  if (!privateKey) {
+    throw new Error('Failed to generate private key (empty output)');
   }
-  // Generate the WireGuard key pair using wg command
-  exec(`wg genkey | tee ${privateKeyPath} | wg pubkey > ${publicKeyPath}`, (error, stdout, stderr) => {
-    if (error) {
-      console.error(`Error generating WireGuard key pair: ${error.message}`);
-      return;
-    }
-    if (stderr) {
-      console.error(`Error output: ${stderr}`);
-      return;
-    }
-  })
 
-  // read the generated keys
-  const privateKey = await fs.readFile(privateKeyPath, 'utf8')
-  const publicKey = await fs.readFile(publicKeyPath, 'utf8');
+  // 2) Derive public key from private
+  //    Note: echo must be quoted to avoid shell‐injection if your key ever has odd chars.
+  const { stdout: rawPub, stderr: err2 } = await exec(`echo "${privateKey}" | wg pubkey`);
+  if (err2) {
+    throw new Error(`Error generating public key: ${err2}`);
+  }
+  const publicKey = rawPub.toString().trim();
+  if (!publicKey) {
+    throw new Error('Failed to generate public key (empty output)');
+  }
 
-  // delete the keys from tmp directory
-  fs.unlink(privateKeyPath);
-  fs.unlink(publicKeyPath);
-
-  // return the keys
-  return { privateKey: privateKey.trim(), publicKey: publicKey.trim() };
+  return { publicKey, privateKey };
 }
 
 module.exports = {
