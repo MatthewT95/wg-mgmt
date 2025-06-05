@@ -1,5 +1,5 @@
 const express = require('express');
-const { getRouters,getRouter, routerUp, routerDown} = require('../controllers/routersController.js');
+const { getRouters,getRouter, routerUp, routerDown,routerRestartController} = require('../controllers/routersController.js');
 const router = express.Router();
 
 // routers.js - Router management routes
@@ -11,9 +11,12 @@ router.get('/', getRouters);
 router.get('/:id', getRouter);
 
 // starts a router by ID
-router.put('/:id/up', routerUp);
+router.post('/:id/up', routerUp);
 
 // stops a router by ID
-router.put('/:id/down', routerDown);
+router.post('/:id/down', routerDown);
+
+// Restart router
+router.post('/:id/restart', routerRestartController);
 
 module.exports = router;

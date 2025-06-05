@@ -220,10 +220,31 @@ async function routerDown(req, res) {
   }
 }
 
+async function routerRestartController(req, res) {
+  const routerId = req.params.id;
+  const routerPath = path.join(__dirname, '../data/routers', routerId);
+
+  // Check if the router directory exists
+  try {
+    await fs.access(routerPath);
+  } catch (err) {
+    return res.status(404).json({ error: `Router with ID ${routerId} does not exist` });
+  }
+
+  // Check if the router is running
+  try {
+    await routerRestart(routerId);
+    return res.status(200).json({ message: `Router with ID ${routerId} has been restarted` });
+  } catch (err) {
+    return res.status(400).json({ error: `Router with ID ${routerId} is not running` });
+  }
+}
+
 module.exports = {
   getRouters,
   getRouter,
   routerUp,
-  routerDown
+  routerDown,
+  routerRestartController
 };
 
