@@ -1,5 +1,7 @@
 const express = require('express');
-const { getRouters,getRouter, routerUp, routerDown,routerRestartController} = require('../controllers/routersController.js');
+const { getRouters,getRouter, routerUp, routerDown,routerRestartController
+  , createRouterController
+} = require('../controllers/routersController.js');
 const router = express.Router();
 
 // routers.js - Router management routes
@@ -18,5 +20,8 @@ router.post('/:id/down', routerDown);
 
 // Restart router
 router.post('/:id/restart', routerRestartController);
+
+// Create a new router
+router.put('/:id/create', createRouterController);
 
 module.exports = router;

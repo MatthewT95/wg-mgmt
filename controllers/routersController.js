@@ -2,7 +2,7 @@ const path = require('path');
 const fs = require('fs').promises;
 const fsSync = require('fs');
 const TOML = require('@iarna/toml');
-const { routerStart, routerStop, routerStatus, routerRestart } = require('../utils/router_manager.js');
+const { routerStart, routerStop, routerStatus, routerRestart,routerCreate } = require('../utils/router_manager.js');
 
 async function getRouters(req, res) {
 
@@ -240,11 +240,33 @@ async function routerRestartController(req, res) {
   }
 }
 
+async function createRouterController(req, res) {
+  const routerId = req.params.id;
+  const routerPath = path.join(__dirname, '../data/routers', routerId);
+
+  // Check if the router directory already exists
+  try {
+    await fs.access(routerPath);
+    return res.status(400).json({ error: `Router with ID ${routerId} already exists` });
+  } catch (err) {
+    // If the directory does not exist, continue
+  }
+
+  // Create the router directory
+  try {
+    const { name } = req.body;
+    routerCreate(routerId, name);
+    return res.status(201).json({ message: `Router with ID ${routerId} created successfully` });
+  } catch (err) {
+    return res.status(500).json({ error: `Error creating router: ${err.message}` });
+  }
+}
 module.exports = {
   getRouters,
   getRouter,
   routerUp,
   routerDown,
-  routerRestartController
+  routerRestartController,
+  createRouterController
 };
 

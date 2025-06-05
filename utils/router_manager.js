@@ -4,6 +4,7 @@ const TOML  = require('@iarna/toml');
 const { generateLANInterfaceConfig } = require('./wg_config.js');
 const path = require('path');
 const { createNetworkNamespace ,deleteNetworkNamespace,createWireGuardInterface,interfaceUp,interfaceDown} = require('./networks.js');
+const { generateWireGuardKeyPair } = require('./keys.js');
 
 function routerStart(router_id) {
   // Create lock file to prevent multiple instances
@@ -189,10 +190,39 @@ function routerRestart(router_id) {
   routerStart(router_id);
 }
 
+async function routerCreate(routerId,name) {
+  const routerPath = `data/routers/${routerId}`;
+  const {privateKey, publicKey} = (await generateWireGuardKeyPair());
+  const routerConfig = {
+    id: routerId,
+    name: name || 'Unnamed Router',
+    privateKey: privateKey,
+    publicKey: publicKey
+  };
+
+  // Check if the router directory already exists
+  try {
+    fs.accessSync(routerPath);
+    console.error(`Router with ID ${routerId} already exists.`);
+    return;
+  } catch (err) {
+    // If the directory does not exist, continue
+  }
+  
+  // Create router directory
+  fs.mkdirSync(routerPath, { recursive: true });
+  
+  // Write router configuration file
+  const routerConfigPath = path.join(routerPath, 'router.toml');
+  fs.writeFileSync(routerConfigPath, TOML.stringify(routerConfig), { encoding: 'utf8' });
+  
+  console.log(`Router ${routerId} created successfully.`);
+}
 module.exports = {
   routerStart,
   routerStop,
   routerStatus,
   routerIsRunning,
-  routerRestart
+  routerRestart,
+  routerCreate
 };
