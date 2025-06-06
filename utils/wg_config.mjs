@@ -1,10 +1,8 @@
-const { exit } = require('process');
-const { vaildIPAddress, vaildIPNetwork} = require('./vaildate.js');
-const TOML = require('@iarna/toml');
-const { parse } = require('path');
-const fs = require('fs');
+import { vaildIPAddress, vaildIPNetwork } from './vaildate.mjs';
+import TOML from '@iarna/toml';
+import fs from 'fs';
 
-function generateWGConfigPartialInterface(address,port,privatekey,dns) {
+export function generateWGConfigPartialInterface(address,port,privatekey,dns) {
   
   // Validate the IP address
   if (!vaildIPAddress(address)) {
@@ -48,7 +46,7 @@ function generateWGConfigPartialInterface(address,port,privatekey,dns) {
   return configPartial.trim(); // Remove trailing whitespace
 }
 
-function generateWGConfigPartialPeer(publickey,endpoint,allowedips,persistentKeepalive) {
+export function generateWGConfigPartialPeer(publickey,endpoint,allowedips,persistentKeepalive) {
   // Validate the public key
   if (!publickey || typeof publickey !== 'string' || publickey.trim() === '') {
     throw new Error("Public key is required for the peer configuration.");
@@ -89,7 +87,7 @@ function generateWGConfigPartialPeer(publickey,endpoint,allowedips,persistentKee
   return configPartial.trim(); // Remove trailing whitespace
 }
 
-function generateLANInterfaceConfig(router_id,lan_id) {
+export function generateLANInterfaceConfig(router_id,lan_id) {
   let wgconfig = "";
   const configFiles = fs.readdirSync(`data/routers/${router_id}`);
   const routerConfig = TOML.parse(fs.readFileSync(`data/routers/${router_id}/router.toml`, 'utf8'));
@@ -126,7 +124,7 @@ function generateLANInterfaceConfig(router_id,lan_id) {
   return wgconfig;
 }
 
-function generateEndDeviceInterfaceConfig(router_id,remote_id) {
+export function generateEndDeviceInterfaceConfig(router_id,remote_id) {
   let wgconfig = "";
   const routerConfig = TOML.parse(fs.readFileSync(`data/routers/${router_id}/router.toml`, 'utf8'));
   const remoteConfig = TOML.parse(fs.readFileSync(`data/routers/${router_id}/${remote_id}.remote.toml`, 'utf8'));
@@ -171,10 +169,3 @@ function generateEndDeviceInterfaceConfig(router_id,remote_id) {
 
   return wgconfig;
 }
-
-module.exports = {
-  generateWGConfigPartialInterface,
-  generateWGConfigPartialPeer,
-  generateLANInterfaceConfig,
-  generateEndDeviceInterfaceConfig
-};

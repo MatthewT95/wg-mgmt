@@ -1,4 +1,4 @@
-function vaildIPAddress(ip) {
+export function vaildIPAddress(ip) {
   // split the IP address into its components
   const parts = ip.split('.');
   // check if the IP address has exactly 4 parts
@@ -21,7 +21,7 @@ function vaildIPAddress(ip) {
   return true;
 }
 
-function vaildIPNetwork(network) {
+export function vaildIPNetwork(network) {
   // split the network into its components
   const parts = network.split('/');
   // check if the network has exactly 2 parts
@@ -41,7 +41,3 @@ function vaildIPNetwork(network) {
   // if all checks pass, return true
   return true;
 }
-module.exports = {
-  vaildIPAddress,
-  vaildIPNetwork
-};

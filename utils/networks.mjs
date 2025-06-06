@@ -1,6 +1,6 @@
-const {execSync} = require('child_process');
+import {execSync} from 'child_process';
 
-function createNetworkNamespace(namespace) {
+export function createNetworkNamespace(namespace) {
   try {
     const existing = execSync(`ip netns list`).toString();
     if (existing.includes(namespace)) {
@@ -14,7 +14,7 @@ function createNetworkNamespace(namespace) {
   }
 }
 
-function deleteNetworkNamespace(namespace) {
+export function deleteNetworkNamespace(namespace) {
   try {
     const existing = execSync(`ip netns list`).toString();
     if (!existing.includes(namespace)) {
@@ -28,7 +28,7 @@ function deleteNetworkNamespace(namespace) {
   }
 }
 
-function createWireGuardInterface(interfaceName, namespace,ipAddress,network) {
+export function createWireGuardInterface(interfaceName, namespace,ipAddress,network) {
   try {
     // Check if the namespace exists
     const existingNamespaces = execSync(`ip netns list`).toString();
@@ -58,7 +58,7 @@ function createWireGuardInterface(interfaceName, namespace,ipAddress,network) {
   }
 }
 
-function interfaceUp(interfaceName, namespace) {
+export function interfaceUp(interfaceName, namespace) {
   try {
     execSync(`ip -n ${namespace} link set ${interfaceName} up`, { stdio: 'ignore' });
     console.log(`WireGuard interface ${interfaceName} is now up in namespace ${namespace}.`);
@@ -67,7 +67,7 @@ function interfaceUp(interfaceName, namespace) {
   }
 }
 
-function interfaceDown(interfaceName, namespace) {
+export function interfaceDown(interfaceName, namespace) {
   try {
     execSync(`ip -n ${namespace} link del ${interfaceName}`, { stdio: 'ignore' });
     console.log(`WireGuard interface ${interfaceName} is now down in namespace ${namespace}.`);
@@ -75,11 +75,3 @@ function interfaceDown(interfaceName, namespace) {
     console.error(`Error bringing down WireGuard interface ${interfaceName} in namespace ${namespace}: ${error.message}`);
   }
 }
-
-module.exports = {
-  createNetworkNamespace,
-  deleteNetworkNamespace,
-  createWireGuardInterface,
-  interfaceUp,
-  interfaceDown
-};

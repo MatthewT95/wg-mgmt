@@ -1,10 +1,10 @@
-const path = require('path');
-const fs = require('fs').promises;
-const fsSync = require('fs');
-const TOML = require('@iarna/toml');
-const { routerStart, routerStop, routerStatus, routerRestart,routerCreate } = require('../utils/router_manager.js');
+import path from 'path';
+import { promises as fs } from 'fs';
+import fsSync from 'fs';
+import TOML from '@iarna/toml';
+import { routerStart, routerStop, routerStatus, routerRestart,routerCreate } from '../utils/router_manager.mjs';
 
-async function getRouters(req, res) {
+export async function getRouters(req, res) {
 
   // Initialize response object
   let response = {
@@ -107,7 +107,7 @@ async function getRouters(req, res) {
 
 }
 
-async function getRouter(req, res) {
+export async function getRouter(req, res) {
   const routerId = req.params.id;
   const routerPath = path.join(__dirname, '../data/routers', routerId);
   const response = {
@@ -169,7 +169,7 @@ async function getRouter(req, res) {
 }
 
 
-async function routerUp(req, res) {
+export async function routerUp(req, res) {
   const routerId = req.params.id;
   const routerPath = path.join(__dirname, '../data/routers', routerId);
   const lockFilePath = path.join(routerPath, '.lock');
@@ -198,7 +198,7 @@ async function routerUp(req, res) {
   }
 }
 
-async function routerDown(req, res) {
+export async function routerDown(req, res) {
   const routerId = req.params.id;
   const routerPath = path.join(__dirname, '../data/routers', routerId);
   const lockFilePath = path.join(routerPath, '.lock');
@@ -220,7 +220,7 @@ async function routerDown(req, res) {
   }
 }
 
-async function routerRestartController(req, res) {
+export async function routerRestartController(req, res) {
   const routerId = req.params.id;
   const routerPath = path.join(__dirname, '../data/routers', routerId);
 
@@ -240,7 +240,7 @@ async function routerRestartController(req, res) {
   }
 }
 
-async function createRouterController(req, res) {
+export async function createRouterController(req, res) {
   const routerId = req.params.id;
   const routerPath = path.join(__dirname, '../data/routers', routerId);
 
@@ -261,12 +261,3 @@ async function createRouterController(req, res) {
     return res.status(500).json({ error: `Error creating router: ${err.message}` });
   }
 }
-module.exports = {
-  getRouters,
-  getRouter,
-  routerUp,
-  routerDown,
-  routerRestartController,
-  createRouterController
-};
-

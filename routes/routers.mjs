@@ -1,9 +1,8 @@
-const express = require('express');
-const { getRouters,getRouter, routerUp, routerDown,routerRestartController
+import  express from 'express'
+import { getRouters,getRouter, routerUp, routerDown,routerRestartController
   , createRouterController
-} = require('../controllers/routersController.js');
+} from '../controllers/routersController.mjs';
 const router = express.Router();
-
 // routers.js - Router management routes
 
 // lists all routers and their information
@@ -24,4 +23,4 @@ router.post('/:id/restart', routerRestartController);
 // Create a new router
 router.put('/:id/create', createRouterController);
 
-module.exports = router;
+export default router;

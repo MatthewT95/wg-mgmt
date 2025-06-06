@@ -1,8 +1,8 @@
-const { promisify } = require('util');
-const { exec: _exec } = require('child_process');
+import { promisify } from 'util';
+import { exec as _exec } from 'child_process';
 const exec = promisify(_exec);
 
-async function generateWireGuardKeyPair() {
+export async function generateWireGuardKeyPair() {
   // 1) Generate private key
   const { stdout: rawPriv, stderr: err1 } = await exec('wg genkey');
   if (err1) {
@@ -26,7 +26,3 @@ async function generateWireGuardKeyPair() {
 
   return { publicKey, privateKey };
 }
-
-module.exports = {
-  generateWireGuardKeyPair
-};

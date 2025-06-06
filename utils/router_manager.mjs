@@ -1,12 +1,12 @@
-const { exec, execSync } = require('child_process');
-const fs  = require('fs');
-const TOML  = require('@iarna/toml');
-const { generateLANInterfaceConfig } = require('./wg_config.js');
-const path = require('path');
-const { createNetworkNamespace ,deleteNetworkNamespace,createWireGuardInterface,interfaceUp,interfaceDown} = require('./networks.js');
-const { generateWireGuardKeyPair } = require('./keys.js');
+import { exec, execSync } from 'child_process';
+import fs from 'fs';
+import TOML from '@iarna/toml';
+import { generateLANInterfaceConfig } from './wg_config.mjs';
+import path from 'path';
+import { createNetworkNamespace ,deleteNetworkNamespace,createWireGuardInterface,interfaceUp,interfaceDown} from './networks.mjs';
+import { generateWireGuardKeyPair } from './keys.mjs';
 
-function routerStart(router_id) {
+export function routerStart(router_id) {
   // Create lock file to prevent multiple instances
   const lockFilePath = `data/routers/${router_id}/.lock`;
   if (fs.existsSync(lockFilePath)) {
@@ -65,7 +65,7 @@ function routerStart(router_id) {
 
 }
 
-function routerStop(router_id) {
+export function routerStop(router_id) {
   // Check if the router is running
   const lockFilePath = `data/routers/${router_id}/.lock`;
   if (!fs.existsSync(lockFilePath)) {
@@ -123,7 +123,7 @@ function routerStop(router_id) {
   console.log(`Stopping router ${router_id}...`);
 }
 
-function routerStatus(router_id) {
+export function routerStatus(router_id) {
   const lockFilePath = `data/routers/${router_id}/.lock`;
   const configFiles = fs.readdirSync(`data/routers/${router_id}`);
   const routerConfig = TOML.parse(fs.readFileSync(`data/routers/${router_id}/router.toml`,{ encoding: 'utf8' }));
@@ -175,12 +175,12 @@ function routerStatus(router_id) {
   }
 }
 
-function routerIsRunning(router_id) {
+export function routerIsRunning(router_id) {
   const lockFilePath = `data/routers/${router_id}/.lock`;
   return fs.existsSync(lockFilePath);
 }
 
-function routerRestart(router_id) {
+export function routerRestart(router_id) {
   if (routerIsRunning(router_id)) {
     console.log(`Restarting router ${router_id}...`);
     routerStop(router_id);
@@ -190,7 +190,7 @@ function routerRestart(router_id) {
   routerStart(router_id);
 }
 
-async function routerCreate(routerId,name) {
+export async function routerCreate(routerId,name) {
   const routerPath = `data/routers/${routerId}`;
   const {privateKey, publicKey} = (await generateWireGuardKeyPair());
   const routerConfig = {
@@ -218,11 +218,3 @@ async function routerCreate(routerId,name) {
   
   console.log(`Router ${routerId} created successfully.`);
 }
-module.exports = {
-  routerStart,
-  routerStop,
-  routerStatus,
-  routerIsRunning,
-  routerRestart,
-  routerCreate
-};
