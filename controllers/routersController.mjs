@@ -3,6 +3,11 @@ import { promises as fs } from 'fs';
 import fsSync from 'fs';
 import TOML from '@iarna/toml';
 import { routerStart, routerStop, routerStatus, routerRestart,routerCreate } from '../utils/router_manager.mjs';
+import { fileURLToPath } from 'url';
+
+// Recreate __filename and __dirname in ESM:
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export async function getRouters(req, res) {
 
