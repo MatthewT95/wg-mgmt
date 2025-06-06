@@ -51,3 +51,35 @@ export async function getLANsController(req, res) {
 
   return res.status(200).json(response);
 }
+
+export async function getLANController(req, res) {
+  const routerId = req.params.routerId;
+  const lanId = req.params.lanId;
+  console.log(`Fetching LAN ${lanId} for router: ${routerId}`);
+  const dataDir = path.join(__dirname,'..','data');
+  const routersDir = path.join(dataDir, 'routers');
+  const routerPath = path.join(routersDir, routerId);
+  const lanFilePath = path.join(routerPath, `${lanId}.lan.toml`);
+
+  // Check if the router directory exists
+  try {
+    await fs.access(routerPath);
+  } catch (err) {
+    return res.status(404).json({ message: `Router ${routerId} not found` });
+  }
+
+  // Check if the LAN configuration file exists
+  try {
+    await fs.access(lanFilePath);
+  } catch (err) {
+    return res.status(404).json({ message: `LAN ${lanId} not found in router ${routerId}` });
+  }
+
+  const lanConfig = TOML.parse(fsSync.readFileSync(lanFilePath, 'utf8'));
+  
+  return res.status(200).json({
+    id: lanId,
+    ...lanConfig,
+    message: `LAN ${lanId} retrieved successfully for router ${routerId}`
+  });
+}
