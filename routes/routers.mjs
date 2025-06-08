@@ -6,7 +6,8 @@ import {
   routerUpController,
   routerDownController,
   routerRestartController,
-  createRouterController
+  createRouterController,
+  updateRouterController
 } from '../controllers/routersController.mjs';
 
 import  lanRouter  from './lans.mjs';   // <-- import your LAN sub‐router here
@@ -37,6 +38,10 @@ router.post('/:id/restart', routerRestartController);
 // Create a new router
 // PUT /routers/:id/create
 router.put('/:id/create', createRouterController);
+
+// Update a router
+// PUT /routers/:id/update
+router.put('/:id/update', updateRouterController);
 
 // Create a new router using POST
 // POST /routers/create

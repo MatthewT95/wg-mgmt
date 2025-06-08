@@ -190,14 +190,15 @@ export function routerRestart(router_id) {
   routerStart(router_id);
 }
 
-export async function routerCreate(routerId,name) {
+export async function routerCreate(routerId,name,vpcId) {
   const routerPath = `data/routers/${routerId}`;
   const {privateKey, publicKey} = (await generateWireGuardKeyPair());
   const routerConfig = {
     id: routerId,
     name: name || 'Unnamed Router',
     privateKey: privateKey,
-    publicKey: publicKey
+    publicKey: publicKey,
+    vpcId: vpcId || 'default',
   };
 
   // Check if the router directory already exists

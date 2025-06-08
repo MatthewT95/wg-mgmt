@@ -279,6 +279,7 @@ export async function routerRestartController(req, res) {
 export async function createRouterController(req, res) {
   const routerId = req.params.id || (Math.floor(100 + Math.random() * 900)).toString(); // Generate a random ID if not provided
   const routerPath = path.join(__dirname, '../data/routers', routerId);
+  const vpcId = req.body.vpcId || "default"; // Default VPC ID if not provided
 
   // Check if the router directory already exists
   try {
@@ -291,9 +292,40 @@ export async function createRouterController(req, res) {
   // Create the router directory
   try {
     const { name } = req.body;
-    routerCreate(routerId, name);
+    routerCreate(routerId, name,vpcId);
     return res.status(201).json({ message: `Router with ID ${routerId} created successfully` });
   } catch (err) {
     return res.status(500).json({ error: `Error creating router: ${err.message}` });
+  }
+}
+
+export async function updateRouterController(req, res) {
+  const routerId = req.params.id;
+  const routerPath = path.join(__dirname, '../data/routers', routerId);
+
+  // Check if the router directory exists
+  try {
+    await fs.access(routerPath);
+  } catch (err) {
+    return res.status(404).json({ error: `Router with ID ${routerId} does not exist` });
+  }
+
+  // Update the router configuration
+  try {
+    const { name, vpcId, domain } = req.body;
+    const routerConfigPath = path.join(routerPath, 'router.toml');
+    let routerConfig = TOML.parse(await fs.readFile(routerConfigPath, { encoding: 'utf8' }));
+
+    // Update the configuration fields
+    if (name) routerConfig.name = name;
+    if (vpcId) routerConfig.vpcID = vpcId;
+    if (domain) routerConfig.domain = domain;
+
+    // Write the updated configuration back to the file
+    await fs.writeFile(routerConfigPath, TOML.stringify(routerConfig), { encoding: 'utf8' });
+
+    return res.status(200).json({ message: `Router with ID ${routerId} updated successfully` });
+  } catch (err) {
+    return res.status(500).json({ error: `Error updating router: ${err.message}` });
   }
 }
