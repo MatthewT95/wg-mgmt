@@ -153,3 +153,50 @@ export async function createLANController(req, res) {
   };
   res.status(201).send(response);
 }
+
+export async function updateLANController(req, res) {
+  const { routerId, lanId } = req.params;
+  const { name, network, gateway, port } = req.body;
+  console.log(`Updating LAN ${lanId} for router: ${routerId}`);
+  const dataDir = path.join(__dirname,'..','data');
+  const routersDir = path.join(dataDir, 'routers');
+  const routerPath = path.join(routersDir, routerId);
+  const lanFilePath = path.join(routerPath, `${lanId}.lan.toml`);
+
+  // Check if the router directory exists
+  try {
+    await fs.access(routerPath);
+  } catch (err) {
+    return res.status(404).json({ message: `Router ${routerId} not found`, status: 'error' });
+  }
+
+  // Check if the LAN configuration file exists
+  try {
+    await fs.access(lanFilePath);
+  } catch (err) {
+    return res.status(404).json({ message: `LAN ${lanId} not found in router ${routerId}`, status: 'error' });
+  }
+
+  // Read the existing LAN configuration
+  let lanConfig = TOML.parse(fsSync.readFileSync(lanFilePath, 'utf8'));
+
+  // Update the LAN configuration with new values
+  if (name) lanConfig.name = name;
+  if (network) lanConfig.network = network;
+  if (gateway) lanConfig.gateway = gateway;
+  if (port) lanConfig.port = port;
+
+  // Write the updated LAN configuration back to the file
+  try {
+    await fs.writeFile(lanFilePath, TOML.stringify(lanConfig), 'utf8');
+    return res.status(200).json({
+      id: lanId,
+      ...lanConfig,
+      message: `LAN ${lanId} updated successfully for router ${routerId}`,
+      status: 'success'
+    });
+  } catch (err) {
+    console.error(`Error updating LAN configuration for ${lanId}: ${err.message}`);
+    return res.status(500).json({ message: `Error updating LAN ${lanId} for router ${routerId}`, status: 'error' });
+  }
+}
