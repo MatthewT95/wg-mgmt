@@ -52,3 +52,39 @@ export async function getRemotesController(req, res) {
 
   return res.status(200).json(response);
 }
+
+export async function getRemoteController(req, res) {
+  const routerId = req.params.routerId;
+  const remoteId = req.params.remoteId;
+  console.log(`Fetching remote ${remoteId} for router: ${routerId}`);
+  const dataDir = path.join(__dirname, '..', 'data');
+  const routersDir = path.join(dataDir, 'routers');
+  const routerPath = path.join(routersDir, routerId);
+
+  // Check if the router directory exists
+  try {
+    await fs.access(routerPath);
+  } catch (err) {
+    return res.status(404).json({ message: `Router ${routerId} not found`, status: 'error' });
+  }
+
+  const remoteFilePath = path.join(routerPath, `${remoteId}.remote.toml`);
+  
+  // Check if the remote configuration file exists
+  try {
+    await fs.access(remoteFilePath);
+  } catch (err) {
+    return res.status(404).json({ message: `Remote ${remoteId} not found for router ${routerId}`, status: 'error' });
+  }
+
+  const remoteConfig = TOML.parse(fsSync.readFileSync(remoteFilePath, 'utf8'));
+  
+  // Hide private key
+  remoteConfig.privateKey = '(hidden)';
+
+  return res.status(200).json({
+    id: remoteId,
+    ...remoteConfig,
+    status: 'success'
+  });
+}
