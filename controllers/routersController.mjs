@@ -9,7 +9,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export async function getRouters(req, res) {
+export async function getRoutersController(req, res) {
 
   // Initialize response object
   let response = {
@@ -112,7 +112,7 @@ export async function getRouters(req, res) {
 
 }
 
-export async function getRouter(req, res) {
+export async function getRouterController(req, res) {
   const routerId = req.params.id;
   const routerPath = path.join(__dirname, '../data/routers', routerId);
   const response = {
@@ -174,7 +174,7 @@ export async function getRouter(req, res) {
 }
 
 
-export async function routerUp(req, res) {
+export async function routerUpController(req, res) {
   const routerId = req.params.id;
   const routerPath = path.join(__dirname, '../data/routers', routerId);
   const lockFilePath = path.join(routerPath, '.lock');
@@ -203,7 +203,7 @@ export async function routerUp(req, res) {
   }
 }
 
-export async function routerDown(req, res) {
+export async function routerDownController(req, res) {
   const routerId = req.params.id;
   const routerPath = path.join(__dirname, '../data/routers', routerId);
   const lockFilePath = path.join(routerPath, '.lock');

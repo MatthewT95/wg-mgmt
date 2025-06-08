@@ -1,10 +1,10 @@
 // routes/routers.mjs
 import express from 'express';
 import {
-  getRouters,
-  getRouter,
-  routerUp,
-  routerDown,
+  getRoutersController,
+  getRouterController,
+  routerUpController,
+  routerDownController,
   routerRestartController,
   createRouterController
 } from '../controllers/routersController.mjs';
@@ -15,19 +15,19 @@ const router = express.Router();
 
 // lists all routers and their information
 // GET /routers
-router.get('/', getRouters);
+router.get('/', getRoutersController);
 
 // retrieves information for a specific router by ID
 // GET /routers/:id
-router.get('/:id', getRouter);
+router.get('/:id', getRouterController);
 
 // starts a router by ID
 // POST /routers/:id/up
-router.post('/:id/up', routerUp);
+router.post('/:id/up', routerUpController);
 
 // stops a router by ID
 // POST /routers/:id/down
-router.post('/:id/down', routerDown);
+router.post('/:id/down', routerDownController);
 
 // Restart router
 // POST /routers/:id/restart
