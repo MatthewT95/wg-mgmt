@@ -1,4 +1,3 @@
-import { exec, execSync } from 'child_process';
 import fs from 'fs';
 import TOML from '@iarna/toml';
 import { generateLANInterfaceConfig } from './wg_config.mjs';

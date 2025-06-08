@@ -9,52 +9,53 @@ import {
   createRouterController,
   updateRouterController,
   deleteRouterController
-} from '../controllers/routersController.mjs';
+} from '../controllers/routersController.mjs'; // Import the necessary controllers for router operations
 
 import  lanRouter  from './lans.mjs';   // <-- import your LAN sub‐router here
-import remoteRouter from './remotes.mjs';
+import remoteRouter from './remotes.mjs'; // <-- import your remote sub‐router here
 
+// Create a new express router instance
 const router = express.Router();
 
-// lists all routers and their information
+// lists all virtual routers and their information
 // GET /routers
 router.get('/', getRoutersController);
 
-// retrieves information for a specific router by ID
+// retrieves information for a specific virtual router by ID
 // GET /routers/:id
 router.get('/:id', getRouterController);
 
-// starts a router by ID
+// starts a virtual router by ID
 // POST /routers/:id/up
 router.post('/:id/up', routerUpController);
 
-// stops a router by ID
+// stops a virtual router by ID
 // POST /routers/:id/down
 router.post('/:id/down', routerDownController);
 
-// Restart router
+// Restarts a virtual router
 // POST /routers/:id/restart
 router.post('/:id/restart', routerRestartController);
 
-// Create a new router
+// Creates a new virtual router with a specific ID using PUT
 // PUT /routers/:id/create
 router.put('/:id/create', createRouterController);
 
-// Update a router
+// Updates a virtual router with a specific ID using PUT
 // PUT /routers/:id/update
 router.put('/:id/update', updateRouterController);
 
-// Create a new router using POST
+// Creates a new virtual router with random id using POST
 // POST /routers/create
 router.post('/create', createRouterController);
+
+// DELETE a virtual router by ID using DELETE
+// DELETE /routers/:id/delete
+router.delete('/:id/delete', deleteRouterController);
 
 // Mount LAN routes under each router
 // e.g.  GET /routers/r003/lan/…  will be handled by lanRouter
 router.use('/:routerId/lan', lanRouter);
-
-// DELETE a router by ID
-// DELETE /routers/:id/delete
-router.delete('/:id/delete', deleteRouterController);
 
 // Mount remote routes under each router
 // e.g.  GET /routers/r003/remotes/…  will be handled by remoteRouter
