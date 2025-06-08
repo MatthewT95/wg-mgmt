@@ -22,7 +22,7 @@ remoteRouter.get('/:remoteId/client_config', getRemoteClientConfigController);
 // PUT /routers/:routerId/remotes/:remoteId/update → update a specific remote configuration
 remoteRouter.put('/:remoteId/update', updateRemoteController);
 
-// DELETE /routers/:routerId/remotes/:remoteId → delete a specific remote configuration
-remoteRouter.delete('/:remoteId', deleteRemoteController)
+// DELETE /routers/:routerId/remotes/:remoteId/delete → delete a specific remote configuration
+remoteRouter.delete('/:routerId/delete', deleteRemoteController)
 
 export default remoteRouter;
