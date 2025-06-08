@@ -10,6 +10,7 @@ import {
 } from '../controllers/routersController.mjs';
 
 import  lanRouter  from './lans.mjs';   // <-- import your LAN sub‐router here
+import remoteRouter from './remotes.mjs';
 
 const router = express.Router();
 
@@ -44,5 +45,9 @@ router.post('/create', createRouterController);
 // Mount LAN routes under each router
 // e.g.  GET /routers/r003/lan/…  will be handled by lanRouter
 router.use('/:routerId/lan', lanRouter);
+
+// Mount remote routes under each router
+// e.g.  GET /routers/r003/remotes/…  will be handled by remoteRouter
+router.use('/:routerId/remotes', remoteRouter);
 
 export default router;
