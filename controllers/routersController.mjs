@@ -50,6 +50,7 @@ export async function getRoutersController(req, res) {
     const routerPath = path.join(routersDir, routerId);
     let routerConfig="";
     let lanConfigs = [];
+    let remoteConfigs = [];
 
     // Check if the router has a .lock file
     const lockFilePath = path.join(routerPath, '.lock');
@@ -74,6 +75,7 @@ export async function getRoutersController(req, res) {
       response.message = `Error reading router configuration for ${routerId}`;
     }
 
+    // Get lan configurations
     try {
       lanConfigs = (await fs.readdir(routerPath)).filter(file => file.endsWith('.lan.toml'))
       .map(file => {return TOML.parse(fsSync.readFileSync(path.join(routerPath, file), { encoding: 'utf8' }))});
@@ -86,6 +88,17 @@ export async function getRoutersController(req, res) {
       lanConfigs = [];
     }
 
+    // Get remote configurations
+    try {
+      remoteConfigs = (await fs.readdir(routerPath)).filter(file => file.endsWith('.remote.toml'))
+      .map(file => {return TOML.parse(fsSync.readFileSync(path.join(routerPath, file), { encoding: 'utf8' }))});
+      remoteConfigs = remoteConfigs.map(config => ({ name: (config.name || 'Unnamed Remote'), address: (config.address || 'N/A'),
+        publicKey: (config.publicKey || 'N/A'),privateKey: "(hidden)" }));
+    } catch (err) {
+      console.error(`Error reading remote configurations for ${routerId}: ${err.message}`);
+      response.message = `Error reading remote configurations for ${routerId}`;
+      remoteConfigs = [];
+    }
 
     // Add router information to the response
     response.routers.push({
@@ -96,6 +109,7 @@ export async function getRoutersController(req, res) {
       publicKey: routerConfig.publicKey || 'N/A',
       domain: routerConfig.domain || 'N/A',
       lanConfigs: lanConfigs,
+      remoteConfigs: remoteConfigs,
       
     });
 
@@ -118,6 +132,7 @@ export async function getRouterController(req, res) {
   const response = {
     id: routerId,
   };
+  let remoteConfigs = [];
 
   // Check if the data directory exists
   const dataDir = path.join(__dirname, '../data');
@@ -170,7 +185,23 @@ export async function getRouterController(req, res) {
     return res.status(500).json({ error: `Error reading LAN configurations: ${err.message}` });
   }
 
-  return res.status(200).json({ id: routerId, routerConfig,lanConfigs:lanConfigs, message: 'Router retrieved successfully' });
+  // Read the remote configurations
+  try {
+    const remoteFiles = (await fs.readdir(routerPath)).filter(file => file.endsWith('.remote.toml'));
+    remoteConfigs = await Promise.all(remoteFiles.map(async (file) => {
+      const config = TOML.parse(await fs.readFile(path.join(routerPath, file), { encoding: 'utf8' }));
+      return {
+        name: config.name || 'Unnamed Remote',
+        address: config.address || 'N/A',
+        publicKey: config.publicKey || 'N/A',
+        privateKey: '(hidden)' // Hide the private key
+      };
+    }));
+  } catch (err) {
+    return res.status(500).json({ error: `Error reading remote configurations: ${err.message}` });
+  }
+
+  return res.status(200).json({ id: routerId, routerConfig,lanConfigs:lanConfigs,remoteConfigs:remoteConfigs, message: 'Router retrieved successfully' });
 }
 
 
