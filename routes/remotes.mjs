@@ -1,7 +1,7 @@
 import express from 'express';
 
 const remoteRouter = express.Router({ mergeParams: true });
-import { getRemotesController, getRemoteController,createRemoteController,getRemoteClientConfigController} from '../controllers/remotesController.mjs';
+import { getRemotesController, getRemoteController,createRemoteController,getRemoteClientConfigController,updateRemoteController} from '../controllers/remotesController.mjs';
 
 // GET  /routers/:routerId/remotes/      → list all remotes under that router
 remoteRouter.get('/', getRemotesController);
@@ -17,5 +17,8 @@ remoteRouter.put('/:remoteId/create', createRemoteController);
 
 // GET /routers/:routerId/remotes/:remoteId/client_config → get client configuration for a specific remote
 remoteRouter.get('/:remoteId/client_config', getRemoteClientConfigController);
+
+// PUT /routers/:routerId/remotes/:remoteId/update → update a specific remote configuration
+remoteRouter.put('/:remoteId/update', updateRemoteController);
 
 export default remoteRouter;

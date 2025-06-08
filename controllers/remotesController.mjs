@@ -215,3 +215,55 @@ export async function getRemoteClientConfigController(req, res) {
   return res.status(200).json(response);
 
 }
+
+export async function updateRemoteController(req, res) {
+  const routerId = req.params.routerId;
+  const remoteId = req.params.remoteId;
+  console.log(`Updating remote ${remoteId} for router: ${routerId}`);
+  const dataDir = path.join(__dirname, '..', 'data');
+  const routersDir = path.join(dataDir, 'routers');
+  const routerFilePath = path.join(routersDir, routerId);
+  const remoteFilePath = path.join(routerFilePath, `${remoteId}.remote.toml`);
+
+  // Check if the router directory exists
+  try {
+    await fs.access(routerFilePath);
+  } catch (err) {
+    return res.status(404).json({ message: `Router ${routerId} not found`, status: 'error' });
+  }
+
+  // Check if the remote configuration file exists
+  try {
+    await fs.access(remoteFilePath);
+  } catch (err) {
+    return res.status(404).json({ message: `Remote ${remoteId} not found for router ${routerId}`, status: 'error' });
+  }
+
+  // Read the existing remote configuration
+  let remoteConfig;
+  try {
+    remoteConfig = TOML.parse(fsSync.readFileSync(remoteFilePath, 'utf8'));
+  } catch (err) {
+    return res.status(500).json({ message: `Error reading remote configuration for ${remoteId}: ${err.message}`, status: 'error' });
+  }
+
+  // Update the remote configuration with new values from request body
+  const { name, lanId, address } = req.body;
+  
+  if (name) remoteConfig.name = name;
+  if (address) remoteConfig.address = address;
+
+  // Write the updated configuration back to the file
+  try {
+    await fs.writeFile(remoteFilePath, TOML.stringify(remoteConfig), 'utf8');
+    return res.status(200).json({
+      id: remoteId,
+      ...remoteConfig,
+      message: `Remote ${remoteId} updated successfully for router ${routerId}`,
+      status: 'success'
+    });
+  } catch (err) {
+    console.error(`Error updating remote configuration for ${remoteId}: ${err.message}`);
+    return res.status(500).json({ message: `Error updating remote ${remoteId} for router ${routerId}`, status: 'error' });
+  }
+}
