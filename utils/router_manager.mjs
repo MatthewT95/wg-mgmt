@@ -216,3 +216,26 @@ export async function routerCreate(routerId,name,vpcId) {
   
   console.log(`Router ${routerId} created successfully.`);
 }
+
+export async function routerDelete(routerId,vpcId) {
+  const routerPath = `data/vpcs/${vpcId}/routers/${routerId}`;
+  
+  // Check if the router directory exists
+  try {
+    fs.accessSync(routerPath);
+  } catch (err) {
+    console.error(`Router with ID ${routerId} does not exist.`);
+    return;
+  }
+  
+  // Stop the router if it is running
+  if (routerIsRunning(routerId,vpcId)) {
+    console.error(`Router ${routerId} is currently running. Please stop it before deleting.`);
+    return;
+  }
+  
+  // Remove the router directory
+  fs.rmdirSync(routerPath, { recursive: true });
+  
+  console.log(`Router ${routerId} deleted successfully.`);
+}

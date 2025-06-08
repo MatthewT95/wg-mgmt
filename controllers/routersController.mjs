@@ -2,7 +2,7 @@ import path from 'path';
 import { promises as fs } from 'fs';
 import fsSync from 'fs';
 import TOML from '@iarna/toml';
-import { routerStart, routerStop, routerStatus, routerRestart,routerCreate } from '../utils/router_manager.mjs';
+import { routerStart, routerStop, routerStatus, routerRestart,routerCreate,routerDelete } from '../utils/router_manager.mjs';
 import { fileURLToPath } from 'url';
 
 // Recreate __filename and __dirname in ESM:
@@ -395,10 +395,5 @@ export async function deleteRouterController(req, res) {
   }
 
   // Delete the router directory
-  try {
-    await fs.rmdir(routerPath, { recursive: true });
-    return res.status(200).json({ message: `Router with ID ${routerId} deleted successfully` });
-  } catch (err) {
-    return res.status(500).json({ error: `Error deleting router: ${err.message}` });
-  }
+  routerDelete(routerId,vpcId);
 }
