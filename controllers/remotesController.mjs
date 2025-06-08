@@ -4,6 +4,8 @@ import fsSync from 'fs';
 import TOML from '@iarna/toml';
 import { fileURLToPath } from 'url';
 import { generateWireGuardKeyPair } from '../utils/keys.mjs';
+import { generateEndDeviceInterfaceConfig } from '../utils/wg_config.mjs';
+import { response } from 'express';
 
 // Recreate __filename and __dirname in ESM:
 const __filename = fileURLToPath(import.meta.url);
@@ -151,5 +153,46 @@ export async function createRemoteController(req, res) {
     message: `Remote ${remoteId} created successfully for router ${routerId}`,
     status: 'success'
   });
+
+}
+
+export async function getRemoteClientConfigController(req, res) {
+  // Get routerId and remoteId from request parameters
+  const routerId = req.params.routerId;
+  const remoteId = req.params.remoteId;
+  console.log(`Fetching client config for remote ${remoteId} of router: ${routerId}`);
+  const dataDir = path.join(__dirname, '..', 'data');
+  const routersDir = path.join(dataDir, 'routers');
+  const routerPath = path.join(routersDir, routerId);
+  // Check if the router directory exists
+  try {
+    await fs.access(routerPath);
+  } catch (err) {
+    return res.status(404).json({ message: `Router ${routerId} not found`, status: 'error' });
+  }
+  const remoteFilePath = path.join(routerPath, `${remoteId}.remote.toml`);
+
+  // Check if the remote configuration file exists
+  try {
+    await fs.access(remoteFilePath);
+  } catch (err) {
+    return res.status(404).json({ message: `Remote ${remoteId} not found for router ${routerId}`, status: 'error' });
+  }
+
+  let response = {
+    clientConfig: generateEndDeviceInterfaceConfig(routerId, remoteId),
+    message: '',
+    status: ''
+  };
+
+  // Check if the client config was generated successfully
+  if (!response.clientConfig) {
+    response.message = `Failed to generate client config for remote ${remoteId} of router ${routerId}`;
+    response.status = 'error';
+    return res.status(500).json(response);
+  }
+  response.message = `Client config for remote ${remoteId} of router ${routerId} generated successfully`;
+  response.status = 'success';
+  return res.status(200).json(response);
 
 }
