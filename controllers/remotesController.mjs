@@ -19,11 +19,17 @@ export async function getRemotesController(req, res) {
   const routerId = req.params.routerId;
   console.log(`Fetching remotes for router: ${routerId}`);
   const dataDir = path.join(__dirname, '..', 'data');
-  console.log(`Data directory: ${dataDir}`);
-  const routersDir = path.join(dataDir, 'routers');
-  console.log(`Routers directory: ${routersDir}`);
+  const vpcDir = path.join(dataDir, 'vpcs', vpcId);
+  const routersDir = path.join(vpcDir, 'routers');
   const routerFilePath = path.join(routersDir, routerId);
 
+  // Check if the VPC directory exists
+  try {
+    await fs.access(vpcDir);
+  } catch (err) {
+    return res.status(404).json({ message: `VPC not found`, status: 'error' });
+  }
+  
   // Check if the router directory exists
   try {
     await fs.access(routerFilePath);
@@ -59,8 +65,16 @@ export async function getRemoteController(req, res) {
   const remoteId = req.params.remoteId;
   console.log(`Fetching remote ${remoteId} for router: ${routerId}`);
   const dataDir = path.join(__dirname, '..', 'data');
-  const routersDir = path.join(dataDir, 'routers');
+  const vpcDir = path.join(dataDir, 'vpcs', vpcId);
+  const routersDir = path.join(vpcDir, 'routers');
   const routerFilePath = path.join(routersDir, routerId);
+
+  // Check if the VPC directory exists
+  try {
+    await fs.access(vpcDir);
+  } catch (err) {
+    return res.status(404).json({ message: `VPC not found`, status: 'error' });
+  }
 
   // Check if the router directory exists
   try {
@@ -98,8 +112,16 @@ export async function createRemoteController(req, res) {
 
   console.log(`Creating remote ${remoteId} for router: ${routerId}`);
   const dataDir = path.join(__dirname, '..', 'data');
-  const routersDir = path.join(dataDir, 'routers');
+  const vpcDir = path.join(dataDir, 'vpcs', vpcId);
+  const routersDir = path.join(vpcDir, 'routers');
   const routerFilePath = path.join(routersDir, routerId);
+
+  // Check if the VPC directory exists
+  try {
+    await fs.access(vpcDir);
+  } catch (err) {
+    return res.status(404).json({ message: `VPC not found`, status: 'error' });
+  }
 
   // Check if the router directory exists
   try {
@@ -160,9 +182,17 @@ export async function getRemoteClientConfigController(req, res) {
   const remoteId = req.params.remoteId;
   console.log(`Fetching client config for remote ${remoteId} of router: ${routerId}`);
   const dataDir = path.join(__dirname, '..', 'data');
-  const routersDir = path.join(dataDir, 'routers');
+  const vpcDir = path.join(dataDir, 'vpcs', vpcId);
+  const routersDir = path.join(vpcDir, 'routers');
   const routerFilePath = path.join(routersDir, routerId);
   const remoteFilePath = path.join(routerFilePath, `${remoteId}.remote.toml`);
+
+  // Check if the VPC directory exists
+  try {
+    await fs.access(vpcDir);
+  } catch (err) {
+    return res.status(404).json({ message: `VPC not found`, status: 'error' }); 
+  }
 
   // Check if the router directory exists
   try {
@@ -221,9 +251,17 @@ export async function updateRemoteController(req, res) {
   const remoteId = req.params.remoteId;
   console.log(`Updating remote ${remoteId} for router: ${routerId}`);
   const dataDir = path.join(__dirname, '..', 'data');
-  const routersDir = path.join(dataDir, 'routers');
+  const vpcDir = path.join(dataDir, 'vpcs', vpcId);
+  const routersDir = path.join(vpcDir, 'routers');
   const routerFilePath = path.join(routersDir, routerId);
   const remoteFilePath = path.join(routerFilePath, `${remoteId}.remote.toml`);
+
+  // Check if the VPC directory exists
+  try {
+    await fs.access(vpcDir);
+  } catch (err) {
+    return res.status(404).json({ message: `VPC not found`, status: 'error' });
+  }
 
   // Check if the router directory exists
   try {
@@ -273,9 +311,17 @@ export async function deleteRemoteController(req, res) {
   const remoteId = req.params.remoteId;
   console.log(`Deleting remote ${remoteId} for router: ${routerId}`);
   const dataDir = path.join(__dirname, '..', 'data');
-  const routersDir = path.join(dataDir, 'routers');
+  const vpcDir = path.join(dataDir, 'vpcs', vpcId);
+  const routersDir = path.join(vpcDir, 'routers');
   const routerFilePath = path.join(routersDir, routerId);
   const remoteFilePath = path.join(routerFilePath, `${remoteId}.remote.toml`);
+
+  // Check if the VPC directory exists
+  try {
+    await fs.access(vpcDir);
+  } catch (err) {
+    return res.status(404).json({ message: `VPC not found`, status: 'error' });
+  }
 
   // Check if the router directory exists
   try {

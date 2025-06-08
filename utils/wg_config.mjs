@@ -87,16 +87,16 @@ export function generateWGConfigPartialPeer(publickey,endpoint,allowedips,persis
   return configPartial.trim(); // Remove trailing whitespace
 }
 
-export function generateLANInterfaceConfig(router_id,lan_id) {
+export function generateLANInterfaceConfig(router_id,lan_id,vpcId) {
   let wgconfig = "";
-  const configFiles = fs.readdirSync(`data/routers/${router_id}`);
-  const routerConfig = TOML.parse(fs.readFileSync(`data/routers/${router_id}/router.toml`, 'utf8'));
-  const lanConfig = TOML.parse(fs.readFileSync(`data/routers/${router_id}/${lan_id}.lan.toml`, 'utf8'));
+  const configFiles = fs.readdirSync(`data/vpcs/${vpcId}/routers/${router_id}`);
+  const routerConfig = TOML.parse(fs.readFileSync(`data/vpcs/${vpcId}/routers/${router_id}/router.toml`, 'utf8'));
+  const lanConfig = TOML.parse(fs.readFileSync(`data/vpcs/${vpcId}/routers/${router_id}/${lan_id}.lan.toml`, 'utf8'));
   let remoteConfigs = []
   // Filter for .remote.toml files in the router's directory
   for (const file of configFiles) {
     if (file.endsWith('.remote.toml')) {
-      const remoteConfig = TOML.parse(fs.readFileSync(`data/routers/${router_id}/${file}`, 'utf8'));
+      const remoteConfig = TOML.parse(fs.readFileSync(`data/vpcs/${vpcId}/routers/${router_id}/${file}`, 'utf8'));
       if (remoteConfig.lanId === lan_id) {
         remoteConfigs.push(remoteConfig);
       }
@@ -124,18 +124,18 @@ export function generateLANInterfaceConfig(router_id,lan_id) {
   return wgconfig;
 }
 
-export function generateEndDeviceInterfaceConfig(router_id,remote_id) {
+export function generateEndDeviceInterfaceConfig(router_id,remote_id, vpcId) {
   let wgconfig = "";
-  const routerConfig = TOML.parse(fs.readFileSync(`data/routers/${router_id}/router.toml`, 'utf8'));
-  const remoteConfig = TOML.parse(fs.readFileSync(`data/routers/${router_id}/${remote_id}.remote.toml`, 'utf8'));
-  const lanConfig = TOML.parse(fs.readFileSync(`data/routers/${router_id}/${remoteConfig.lanId}.lan.toml`, 'utf8'));
+  const routerConfig = TOML.parse(fs.readFileSync(`data/vpcs/${vpcId}/routers/${router_id}/router.toml`, 'utf8'));
+  const remoteConfig = TOML.parse(fs.readFileSync(`data/vpcs/${vpcId}/routers/${router_id}/${remote_id}.remote.toml`, 'utf8'));
+  const lanConfig = TOML.parse(fs.readFileSync(`data/vpcs/${vpcId}/routers/${router_id}/${remoteConfig.lanId}.lan.toml`, 'utf8'));
   const lanConfigs = []
   const configFiles = fs.readdirSync(`data/routers/${router_id}`);
 
   // Filter for .lan.toml files in the router's directory
   for (const file of configFiles) {
     if (file.endsWith('.lan.toml')) {
-      const lanConfig = TOML.parse(fs.readFileSync(`data/routers/${router_id}/${file}`, 'utf8'));
+      const lanConfig = TOML.parse(fs.readFileSync(`data/vpcs/${vpcId}/routers/${router_id}/${file}`, 'utf8'));
       lanConfigs.push(lanConfig);
     }
   }

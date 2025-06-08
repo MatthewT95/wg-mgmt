@@ -15,7 +15,7 @@ import  lanRouter  from './lans.mjs';   // <-- import your LAN sub‐router here
 import remoteRouter from './remotes.mjs'; // <-- import your remote sub‐router here
 
 // Create a new express router instance
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
 // lists all virtual routers and their information
 // GET /routers

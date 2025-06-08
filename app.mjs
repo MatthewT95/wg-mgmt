@@ -11,46 +11,44 @@ const port = 3000;
 
 async function restartAllRouters() {
   const dataDir = path.join('data');
-  const routersDir = path.join(dataDir, 'routers');
+  const vpcsDir = path.join(dataDir, 'vpcs');
 
-  // Ensure “data/routers” exists
+  // Ensure “data/vpcs” exists
   try {
-    await fs.access(dataDir);
+    await fs.access(vpcsDir);
   } catch {
-    await fs.mkdir(routersDir, { recursive: true });
+    await fs.mkdir(vpcsDir, { recursive: true });
     return;
   }
 
-  try {
-    await fs.access(routersDir);
-  } catch {
-    await fs.mkdir(routersDir, { recursive: true });
-    return;
-  }
+  const vpcDirs = await (await fs.readdir(vpcsDir, { withFileTypes: true })).filter(dirent => dirent.isDirectory());
 
-  const routerDirs = (
-    await fs.readdir(routersDir, { withFileTypes: true })
-  ).filter(dirent => dirent.isDirectory());
 
-  for (const dir of routerDirs) {
-    const routerId = dir.name;
-    const lockFilePath = path.join(routersDir, routerId, '.lock');
+  for (const dir of vpcDirs) {
+    const vpcId = dir.name;
+    console.log(`Processing VPC: ${vpcId}`);
+    const routersDir = path.join(vpcsDir,vpcId, 'routers');
+    console.log(`Routers directory: ${routersDir}`);
 
-    let active = false;
+    // Ensure “data/vpcs/{vpcId}/routers” exists
     try {
-      await fs.access(lockFilePath);
-      active = true;
+      await fs.access(routersDir);
     } catch {
-      active = false;
-    }
-
-    if (!active) {
-      console.log(`Router ${routerId} is not active, skipping restart.`);
+      await fs.mkdir(routersDir, { recursive: true });
       continue;
     }
 
-    console.log(`Restarting router: ${routerId}`);
-    await routerRestart(routerId);
+    const routerFiles = await fs.readdir(routersDir, { withFileTypes: true });
+    for (const file of routerFiles) {
+      if (file.isDirectory()) {
+        const routerId = file.name;
+        try {
+          await routerRestart(routerId, vpcId);
+        } catch (err) {
+          console.error(`Failed to restart router ${routerId} in VPC ${vpcId}:`, err);
+        }
+      }
+    }
   }
 }
 
@@ -59,7 +57,7 @@ restartAllRouters()
   .catch(err => console.error('Error restarting routers:', err));
 
 app.use(express.json());
-app.use('/routers', routersRouter);
+app.use('/vpc/:vpcId/routers', routersRouter);
 
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`);

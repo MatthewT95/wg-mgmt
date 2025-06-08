@@ -5,9 +5,9 @@ import path from 'path';
 import { createNetworkNamespace ,deleteNetworkNamespace,createWireGuardInterface,interfaceUp,interfaceDown} from './networks.mjs';
 import { generateWireGuardKeyPair } from './keys.mjs';
 
-export function routerStart(router_id) {
+export function routerStart(router_id,vpcId) {
   // Create lock file to prevent multiple instances
-  const lockFilePath = `data/routers/${router_id}/.lock`;
+  const lockFilePath = `data/vpcs/${vpcId}/routers/${router_id}/.lock`;
   if (fs.existsSync(lockFilePath)) {
     console.error(`Router ${router_id} is already running.`);
     return;
@@ -15,15 +15,14 @@ export function routerStart(router_id) {
   fs.writeFileSync(lockFilePath, 'locked');
 
   console.log(`Starting router ${router_id}...`);
-  const configFiles = fs.readdirSync(`data/routers/${router_id}`);
-  const routerConfig = TOML.parse(fs.readFileSync(`data/routers/${router_id}/router.toml`,{ encoding: 'utf8' }));
+  const configFiles = fs.readdirSync(`data/vpcs/${vpcId}/routers/${router_id}`);
   let lanIds = []
   let lanConfigs = [];
   let remoteConfigs = [];
   // Filter for .lan.toml files in the router's directory
   for (const file of configFiles) {
     if (file.endsWith('.lan.toml')) {
-      const lanConfig = TOML.parse(fs.readFileSync(`data/routers/${router_id}/${file}`,{ encoding: 'utf8' }));
+      const lanConfig = TOML.parse(fs.readFileSync(`data/vpcs/${vpcId}/routers/${router_id}/${file}`,{ encoding: 'utf8' }));
       lanIds.push(file.replace('.lan.toml', ''));
       lanConfigs[file.replace('.lan.toml','')]=lanConfig;
     }
@@ -32,7 +31,7 @@ export function routerStart(router_id) {
   // Filter for .remote.toml files in the router's directory
   for (const file of configFiles) {
     if (file.endsWith('.remote.toml')) {
-      const remoteConfig = TOML.parse(fs.readFileSync(`data/routers/${router_id}/${file}`,{ encoding: 'utf8' }));
+      const remoteConfig = TOML.parse(fs.readFileSync(`data/vpcs/${vpcId}/routers/${router_id}/${file}`,{ encoding: 'utf8' }));
       if (remoteConfig.lanId) {
         remoteConfigs.push(remoteConfig);
       }
@@ -47,7 +46,7 @@ export function routerStart(router_id) {
   for (const lanId of lanIds) {
     try {
       const lanConfig = lanConfigs[lanId];
-      const wgConfig = generateLANInterfaceConfig(router_id, lanId)
+      const wgConfig = generateLANInterfaceConfig(router_id, lanId,vpcId)
       const configFilePath = `/etc/wireguard/${lanConfig.interface}.conf`;
       fs.writeFileSync(configFilePath, wgConfig);
       console.log(`WireGuard configuration file created: ${configFilePath}`);
@@ -64,23 +63,23 @@ export function routerStart(router_id) {
 
 }
 
-export function routerStop(router_id) {
+export function routerStop(router_id, vpcId) {
   // Check if the router is running
-  const lockFilePath = `data/routers/${router_id}/.lock`;
+  const lockFilePath = `data/vpcs/${vpcId}/routers/${router_id}/.lock`;
   if (!fs.existsSync(lockFilePath)) {
     console.error(`Router ${router_id} is not running.`);
     return;
   }
   
-  const configFiles = fs.readdirSync(`data/routers/${router_id}`);
-  const routerConfig = TOML.parse(fs.readFileSync(`data/routers/${router_id}/router.toml`,{ encoding: 'utf8' }));
+  const configFiles = fs.readdirSync(`data/vpcs/${vpcId}/routers/${router_id}`);
+  const routerConfig = TOML.parse(fs.readFileSync(`data/vpcs/${vpcId}/routers/${router_id}/router.toml`,{ encoding: 'utf8' }));
   let lanIds = []
   let lanConfigs = [];
   let remoteConfigs = [];
   // Filter for .lan.toml files in the router's directory
   for (const file of configFiles) {
     if (file.endsWith('.lan.toml')) {
-      const lanConfig = TOML.parse(fs.readFileSync(`data/routers/${router_id}/${file}`,{ encoding: 'utf8' }));
+      const lanConfig = TOML.parse(fs.readFileSync(`data/vpcs/${vpcId}/routers/${router_id}/${file}`,{ encoding: 'utf8' }));
       lanIds.push(file.replace('.lan.toml', ''));
       lanConfigs[file.replace('.lan.toml','')]=lanConfig;
     }
@@ -89,7 +88,7 @@ export function routerStop(router_id) {
   // Filter for .remote.toml files in the router's directory
   for (const file of configFiles) {
     if (file.endsWith('.remote.toml')) {
-      const remoteConfig = TOML.parse(fs.readFileSync(`data/routers/${router_id}/${file}`,{ encoding: 'utf8' }));
+      const remoteConfig = TOML.parse(fs.readFileSync(`data/vpcs/${vpcId}/routers/${router_id}/${file}`,{ encoding: 'utf8' }));
       if (remoteConfig.lanId) {
         remoteConfigs.push(remoteConfig);
       }
@@ -122,9 +121,9 @@ export function routerStop(router_id) {
   console.log(`Stopping router ${router_id}...`);
 }
 
-export function routerStatus(router_id) {
-  const lockFilePath = `data/routers/${router_id}/.lock`;
-  const configFiles = fs.readdirSync(`data/routers/${router_id}`);
+export function routerStatus(router_id,vpcId) {
+  const lockFilePath = `data/vpcs/${vpcId}/routers/${router_id}/.lock`;
+  const configFiles = fs.readdirSync(`ddata/vpcs/${vpcId}/routers/${router_id}`);
   const routerConfig = TOML.parse(fs.readFileSync(`data/routers/${router_id}/router.toml`,{ encoding: 'utf8' }));
   // hide privacy key
   routerConfig.privacyKey = '(hidden)';
@@ -134,7 +133,7 @@ export function routerStatus(router_id) {
   // Filter for .lan.toml files in the router's directory
   for (const file of configFiles) {
     if (file.endsWith('.lan.toml')) {
-      const lanConfig = TOML.parse(fs.readFileSync(`data/routers/${router_id}/${file}`,{ encoding: 'utf8' }));
+      const lanConfig = TOML.parse(fs.readFileSync(`data/vpcs/${vpcId}/routers/${router_id}/${file}`,{ encoding: 'utf8' }));
       lanIds.push(file.replace('.lan.toml', ''));
       lanConfigs[file.replace('.lan.toml','')]=lanConfig;
     }
@@ -142,7 +141,7 @@ export function routerStatus(router_id) {
   // Filter for .remote.toml files in the router's directory
   for (const file of configFiles) {
     if (file.endsWith('.remote.toml')) {
-      const remoteConfig = TOML.parse(fs.readFileSync(`data/routers/${router_id}/${file}`,{ encoding: 'utf8' }));
+      const remoteConfig = TOML.parse(fs.readFileSync(`data/vpcs/${vpcId}/routers/${router_id}/${file}`,{ encoding: 'utf8' }));
       // hide privacy key
       remoteConfig.privateKey = '(hidden)';
       if (remoteConfig.lanId) {
@@ -174,23 +173,23 @@ export function routerStatus(router_id) {
   }
 }
 
-export function routerIsRunning(router_id) {
-  const lockFilePath = `data/routers/${router_id}/.lock`;
+export function routerIsRunning(router_id,vpcId) {
+  const lockFilePath = `data/vpcs/${vpcId}/routers/${router_id}/.lock`;
   return fs.existsSync(lockFilePath);
 }
 
-export function routerRestart(router_id) {
-  if (routerIsRunning(router_id)) {
+export function routerRestart(router_id,vpcId) {
+  if (routerIsRunning(router_id,vpcId)) {
     console.log(`Restarting router ${router_id}...`);
-    routerStop(router_id);
+    routerStop(router_id,vpcId);
   } else {
     console.log(`Router ${router_id} is not running. Starting it now...`);
   }
-  routerStart(router_id);
+  routerStart(router_id,vpcId);
 }
 
 export async function routerCreate(routerId,name,vpcId) {
-  const routerPath = `data/routers/${routerId}`;
+  const routerPath = `data/vpcs/${vpcId}/routers/${routerId}`;
   const {privateKey, publicKey} = (await generateWireGuardKeyPair());
   const routerConfig = {
     id: routerId,

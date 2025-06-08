@@ -18,7 +18,9 @@ export async function getRoutersController(req, res) {
   }
 
   const dataDir = path.join('data');
-  const routersDir = path.join(dataDir, 'routers');
+  const vpcId = req.params.vpcId;
+  const vpcDir = path.join(dataDir, 'vpcs', vpcId);
+  const routersDir = path.join(vpcDir, 'routers');
   // Check if data directory exists
   try 
   {
@@ -28,6 +30,17 @@ export async function getRoutersController(req, res) {
   {
     // If the directory does not exist, create it
     await fs.mkdir(dataDir, { recursive: true });
+    // create the routers directory
+    await fs.mkdir(routersDir, { recursive: true });
+    return res.status(200).json({ routers: [], message: 'No routers found' });
+  }
+
+  // Check if vpc directory exists
+  try {
+    await fs.access(vpcDir);
+  } catch (err) {
+    // If the directory does not exist, create it
+    await fs.mkdir(vpcDir, { recursive: true });
     // create the routers directory
     await fs.mkdir(routersDir, { recursive: true });
     return res.status(200).json({ routers: [], message: 'No routers found' });
@@ -128,14 +141,17 @@ export async function getRoutersController(req, res) {
 
 export async function getRouterController(req, res) {
   const routerId = req.params.id;
-  const routerPath = path.join(__dirname, '../data/routers', routerId);
+  const vpcId = req.params.vpcId;
+  const dataDir = path.join(__dirname, '../data');
+  const vpcDir = path.join(dataDir, 'vpcs', vpcId);
+  const routersDir = path.join(vpcDir, 'routers');
+  const routerPath = path.join(routersDir, routerId);
   const response = {
     id: routerId,
   };
   let remoteConfigs = [];
 
   // Check if the data directory exists
-  const dataDir = path.join(__dirname, '../data');
   try {
     await fs.access(dataDir);
   } catch (err) {
@@ -145,6 +161,15 @@ export async function getRouterController(req, res) {
     response.message = `Router with ID ${routerId} does not exist`;
     return res.status(404).json(response);
   }
+
+  // Check if the VPC directory exists
+  try {
+    await fs.access(vpcDir);
+  } catch (err) {
+    response.error = `VPC with ID ${vpcId} does not exist`;
+    return res.status(404).json(response);
+  }
+
   // Check if the router directory exists
   try {
     await fs.access(routerPath);
@@ -207,7 +232,11 @@ export async function getRouterController(req, res) {
 
 export async function routerUpController(req, res) {
   const routerId = req.params.id;
-  const routerPath = path.join(__dirname, '../data/routers', routerId);
+  const vpcId = req.params.vpcId;
+  const dataDir = path.join(__dirname, '../data');
+  const vpcDir = path.join(dataDir, 'vpcs', vpcId);
+  const routersDir = path.join(vpcDir, 'routers');
+  const routerPath = path.join(routersDir, routerId);
   const lockFilePath = path.join(routerPath, '.lock');
 
   // Check if the router directory exists
@@ -227,7 +256,7 @@ export async function routerUpController(req, res) {
 
   // Create the lock file to indicate that the router is running
   try {
-    routerStart(routerId);
+    routerStart(routerId,vpcId);
     return res.status(200).json({ message: `Router with ID ${routerId} is now running` });
   } catch (err) {
     return res.status(500).json({ error: `Error starting router: ${err.message}` });
@@ -236,8 +265,10 @@ export async function routerUpController(req, res) {
 
 export async function routerDownController(req, res) {
   const routerId = req.params.id;
-  const routerPath = path.join(__dirname, '../data/routers', routerId);
+  const vpcId = req.params.vpcId;
+  const routerPath = path.join(__dirname, `../data/vpcs/${vpcId}/routers`, routerId);
   const lockFilePath = path.join(routerPath, '.lock');
+  console.log(routerPath);
 
   // Check if the router directory exists
   try {
@@ -249,7 +280,7 @@ export async function routerDownController(req, res) {
   // Check if the router is running
   try {
     await fs.access(lockFilePath);
-    routerStop(routerId);
+    routerStop(routerId,vpcId);
     return res.status(200).json({ message: `Router with ID ${routerId} is now stopped` });
   } catch (err) {
     return res.status(400).json({ error: `Router with ID ${routerId} is not running` });
@@ -258,7 +289,8 @@ export async function routerDownController(req, res) {
 
 export async function routerRestartController(req, res) {
   const routerId = req.params.id;
-  const routerPath = path.join(__dirname, '../data/routers', routerId);
+  const vpcId = req.params.vpcId;
+  const routerPath = path.join(__dirname, `../data/vpcs/${vpcId}/routers`, routerId);
 
   // Check if the router directory exists
   try {
@@ -278,8 +310,10 @@ export async function routerRestartController(req, res) {
 
 export async function createRouterController(req, res) {
   const routerId = req.params.id || (Math.floor(100 + Math.random() * 900)).toString(); // Generate a random ID if not provided
-  const routerPath = path.join(__dirname, '../data/routers', routerId);
-  const vpcId = req.body.vpcId || "default"; // Default VPC ID if not provided
+  const vpcId = req.params.vpcId
+  console.log(`Creating router with ID: ${routerId} in VPC: ${vpcId}`);
+  const routerPath = path.join(__dirname, `../data/vpcs/${vpcId}/routers`, routerId);
+  
 
   // Check if the router directory already exists
   try {
@@ -301,7 +335,8 @@ export async function createRouterController(req, res) {
 
 export async function updateRouterController(req, res) {
   const routerId = req.params.id;
-  const routerPath = path.join(__dirname, '../data/routers', routerId);
+  const vpcId = req.params.vpcId;
+  const routerPath = path.join(__dirname, `../vpcs/${vpcId}data/routers`, routerId);
 
   // Check if the router directory exists
   try {
@@ -332,7 +367,8 @@ export async function updateRouterController(req, res) {
 
 export async function deleteRouterController(req, res) {
   const routerId = req.params.id;
-  const routerPath = path.join(__dirname, '../data/routers', routerId);
+  const vpcId = req.params.vpcId;
+  const routerPath = path.join(__dirname, `../data/vpcs/${vpcId}/routers`, routerId);
   const lockFilePath = path.join(routerPath, '.lock');
 
   // Check if the router directory exists

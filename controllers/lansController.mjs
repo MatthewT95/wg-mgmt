@@ -16,12 +16,21 @@ export async function getLANsController(req, res) {
   };
 
   const routerId = req.params.routerId;
+  const vpcId = req.params.vpcId;
   console.log(`Fetching LANs for router: ${routerId}`);
   const dataDir = path.join(__dirname,'..','data');
   console.log(`Data directory: ${dataDir}`);
-  const routersDir = path.join(dataDir, 'routers');
+  const vpcDir = path.join(dataDir, 'vpcs', vpcId);
+  const routersDir = path.join(vpcDir, 'routers');
   console.log(`Routers directory: ${routersDir}`);
   const routerPath = path.join(routersDir, routerId);
+
+  // Check if the VPC directory exists
+  try {
+    await fs.access(vpcDir);
+  } catch (err) {
+    return res.status(404).json({ message: `VPC ${vpcId} not found`, status: 'error' });
+  }
 
   // Check if the router directory exists
   try {
@@ -56,11 +65,20 @@ export async function getLANsController(req, res) {
 export async function getLANController(req, res) {
   const routerId = req.params.routerId;
   const lanId = req.params.lanId;
+  const vpcId = req.params.vpcId;
   console.log(`Fetching LAN ${lanId} for router: ${routerId}`);
   const dataDir = path.join(__dirname,'..','data');
-  const routersDir = path.join(dataDir, 'routers');
+  const vpcDir = path.join(dataDir, 'vpcs', vpcId);
+  const routersDir = path.join(vpcDir, 'routers');
   const routerPath = path.join(routersDir, routerId);
   const lanFilePath = path.join(routerPath, `${lanId}.lan.toml`);
+
+  // Check if the VPC directory exists
+  try {
+    await fs.access(vpcDir);
+  } catch (err) {
+    return res.status(404).json({ message: `VPC ${vpcId} not found`, status: 'error' });
+  }
 
   // Check if the router directory exists
   try {
@@ -87,7 +105,7 @@ export async function getLANController(req, res) {
 }
 
 export async function createLANController(req, res) {
-  const { routerId } = req.params;
+  const { routerId,vpcId } = req.params;
   let lanId = req.params.lanId || Math.floor(100 + Math.random() * 900);
   let { name,network,gateway, port} = req.body;
   // Generate a random 4-digit interface id
@@ -95,7 +113,8 @@ export async function createLANController(req, res) {
   const wgInterface = `wg-${randomId}`;
   console.log(`Creating LAN ${lanId} for router: ${routerId}`);
   const dataDir = path.join(__dirname,'..','data');
-  const routersDir = path.join(dataDir, 'routers');
+  const vpcDir = path.join(dataDir, 'vpcs', vpcId);
+  const routersDir = path.join(vpcDir, 'routers');
   const routerPath = path.join(routersDir, routerId);
   const lanFilePath = path.join(routerPath, `${lanId}.lan.toml`);
 
@@ -107,6 +126,13 @@ export async function createLANController(req, res) {
   // Check if port is provided, if not set to random port from 50000 to 60000
   if (!port) {
     port = Math.floor(Math.random() * (60000 - 50000 + 1)) + 50000;
+  }
+
+  // Check if the VPC directory exists
+  try {
+    await fs.access(vpcDir);
+  } catch (err) {
+    return res.status(404).json({ message: `VPC ${vpcId} not found`, status: 'error' });
   }
 
   // Check if the router directory exists
@@ -143,6 +169,7 @@ export async function createLANController(req, res) {
   // Logic to create a new LAN configuration
   const response = {
     id: lanId,
+    vpcId: vpcId,
     name: name || 'Unnamed LAN',
     interface: wgInterface,
     network: network,
@@ -155,13 +182,21 @@ export async function createLANController(req, res) {
 }
 
 export async function updateLANController(req, res) {
-  const { routerId, lanId } = req.params;
+  const { routerId, lanId ,vpcId} = req.params;
   const { name, network, gateway, port } = req.body;
   console.log(`Updating LAN ${lanId} for router: ${routerId}`);
   const dataDir = path.join(__dirname,'..','data');
-  const routersDir = path.join(dataDir, 'routers');
+  const vpcDir = path.join(dataDir, 'vpcs', vpcId);
+  const routersDir = path.join(vpcDir, 'routers');
   const routerPath = path.join(routersDir, routerId);
   const lanFilePath = path.join(routerPath, `${lanId}.lan.toml`);
+
+  // Check if the VPC directory exists
+  try {
+    await fs.access(vpcDir);
+  } catch (err) {
+    return res.status(404).json({ message: `VPC ${vpcId} not found`, status: 'error' });
+  }
 
   // Check if the router directory exists
   try {
@@ -202,12 +237,20 @@ export async function updateLANController(req, res) {
 }
 
 export async function deleteLANController(req, res) {
-  const { routerId, lanId } = req.params;
+  const { routerId, lanId,vpcId} = req.params;
   console.log(`Deleting LAN ${lanId} for router: ${routerId}`);
   const dataDir = path.join(__dirname,'..','data');
-  const routersDir = path.join(dataDir, 'routers');
+  const vpcDir = path.join(dataDir, 'vpcs', vpcId);
+  const routersDir = path.join(vpcDir, 'routers');
   const routerPath = path.join(routersDir, routerId);
   const lanFilePath = path.join(routerPath, `${lanId}.lan.toml`);
+
+  // Check if the VPC directory exists
+  try {
+    await fs.access(vpcDir);
+  } catch (err) {
+    return res.status(404).json({ message: `VPC ${vpcId} not found`, status: 'error' });
+  }
 
   // Check if the router directory exists
   try {
