@@ -196,7 +196,6 @@ export async function routerCreate(routerId,name,vpcId) {
     name: name || 'Unnamed Router',
     privateKey: privateKey,
     publicKey: publicKey,
-    vpcId: vpcId || 'default',
   };
 
   // Check if the router directory already exists

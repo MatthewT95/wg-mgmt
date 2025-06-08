@@ -117,7 +117,6 @@ export async function getRoutersController(req, res) {
     response.routers.push({
       id: routerId,
       active: active,
-      vpcID: routerConfig.vpcID || 'N/A',
       name: routerConfig.name || 'Unnamed Router',
       publicKey: routerConfig.publicKey || 'N/A',
       domain: routerConfig.domain || 'N/A',
@@ -192,6 +191,18 @@ export async function getRouterController(req, res) {
     routerConfig.privateKey = '(hidden)';
   }
 
+   // Check if the router has a .lock file
+  const lockFilePath = path.join(routerPath, '.lock');
+  let active = false;
+
+  // If the .lock file exists, the router is active
+  try {
+    await fs.access(lockFilePath);
+    active = true;
+  } catch (err) {
+    active = false;
+  }
+
   // Read the LAN configurations
   let lanConfigs = [];
   try {
@@ -203,7 +214,7 @@ export async function getRouterController(req, res) {
         interface: config.interface || 'N/A',
         gateway: config.gateway || 'N/A',
         network: config.network || 'N/A',
-        serverPort: config.port || 'N/A'
+        serverPort: config.port || 'N/A',
       };
     }));
   } catch (err) {
@@ -226,7 +237,7 @@ export async function getRouterController(req, res) {
     return res.status(500).json({ error: `Error reading remote configurations: ${err.message}` });
   }
 
-  return res.status(200).json({ id: routerId, routerConfig,lanConfigs:lanConfigs,remoteConfigs:remoteConfigs, message: 'Router retrieved successfully' });
+  return res.status(200).json({ id: routerId, active:active,routerConfig,lanConfigs:lanConfigs,remoteConfigs:remoteConfigs, message: 'Router retrieved successfully' });
 }
 
 
@@ -312,7 +323,6 @@ export async function createRouterController(req, res) {
   const vpcId = req.params.vpcId
   console.log(`Creating router with ID: ${routerId} in VPC: ${vpcId}`);
   const routerPath = path.join(__dirname, `../data/vpcs/${vpcId}/routers`, routerId);
-  
 
   // Check if the router directory already exists
   try {
@@ -352,7 +362,6 @@ export async function updateRouterController(req, res) {
 
     // Update the configuration fields
     if (name) routerConfig.name = name;
-    if (vpcId) routerConfig.vpcID = vpcId;
     if (domain) routerConfig.domain = domain;
 
     // Write the updated configuration back to the file
