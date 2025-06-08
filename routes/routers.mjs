@@ -59,6 +59,6 @@ router.use('/:routerId/lan', lanRouter);
 
 // Mount remote routes under each router
 // e.g.  GET /routers/r003/remotes/…  will be handled by remoteRouter
-router.use('/:routerId/remotes', remoteRouter);
+router.use('/:routerId/remote', remoteRouter);
 
 export default router;

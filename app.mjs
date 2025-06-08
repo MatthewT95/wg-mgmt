@@ -57,7 +57,7 @@ restartAllRouters()
   .catch(err => console.error('Error restarting routers:', err));
 
 app.use(express.json());
-app.use('/vpc/:vpcId/routers', routersRouter);
+app.use('/vpc/:vpcId/router', routersRouter);
 
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`);

@@ -268,7 +268,6 @@ export async function routerDownController(req, res) {
   const vpcId = req.params.vpcId;
   const routerPath = path.join(__dirname, `../data/vpcs/${vpcId}/routers`, routerId);
   const lockFilePath = path.join(routerPath, '.lock');
-  console.log(routerPath);
 
   // Check if the router directory exists
   try {

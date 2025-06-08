@@ -19,6 +19,7 @@ export async function getRemotesController(req, res) {
   const routerId = req.params.routerId;
   console.log(`Fetching remotes for router: ${routerId}`);
   const dataDir = path.join(__dirname, '..', 'data');
+  const vpcId = req.params.vpcId; // Assuming vpcId is passed as a parameter
   const vpcDir = path.join(dataDir, 'vpcs', vpcId);
   const routersDir = path.join(vpcDir, 'routers');
   const routerFilePath = path.join(routersDir, routerId);
@@ -29,7 +30,7 @@ export async function getRemotesController(req, res) {
   } catch (err) {
     return res.status(404).json({ message: `VPC not found`, status: 'error' });
   }
-  
+
   // Check if the router directory exists
   try {
     await fs.access(routerFilePath);
@@ -63,6 +64,7 @@ export async function getRemotesController(req, res) {
 export async function getRemoteController(req, res) {
   const routerId = req.params.routerId;
   const remoteId = req.params.remoteId;
+  const vpcId = req.params.vpcId; // Assuming vpcId is passed as a parameter
   console.log(`Fetching remote ${remoteId} for router: ${routerId}`);
   const dataDir = path.join(__dirname, '..', 'data');
   const vpcDir = path.join(dataDir, 'vpcs', vpcId);

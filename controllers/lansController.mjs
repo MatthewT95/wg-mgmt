@@ -19,10 +19,8 @@ export async function getLANsController(req, res) {
   const vpcId = req.params.vpcId;
   console.log(`Fetching LANs for router: ${routerId}`);
   const dataDir = path.join(__dirname,'..','data');
-  console.log(`Data directory: ${dataDir}`);
   const vpcDir = path.join(dataDir, 'vpcs', vpcId);
   const routersDir = path.join(vpcDir, 'routers');
-  console.log(`Routers directory: ${routersDir}`);
   const routerPath = path.join(routersDir, routerId);
 
   // Check if the VPC directory exists
