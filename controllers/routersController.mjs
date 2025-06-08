@@ -329,3 +329,32 @@ export async function updateRouterController(req, res) {
     return res.status(500).json({ error: `Error updating router: ${err.message}` });
   }
 }
+
+export async function deleteRouterController(req, res) {
+  const routerId = req.params.id;
+  const routerPath = path.join(__dirname, '../data/routers', routerId);
+  const lockFilePath = path.join(routerPath, '.lock');
+
+  // Check if the router directory exists
+  try {
+    await fs.access(routerPath);
+  } catch (err) {
+    return res.status(404).json({ error: `Router with ID ${routerId} does not exist` });
+  }
+
+  // Check if the router is running
+  try {
+    await fs.access(lockFilePath);
+    return res.status(400).json({ error: `Router with ID ${routerId} is currently running. Please stop it before deleting.` });
+  } catch (err) {
+    // If the lock file does not exist, continue
+  }
+
+  // Delete the router directory
+  try {
+    await fs.rmdir(routerPath, { recursive: true });
+    return res.status(200).json({ message: `Router with ID ${routerId} deleted successfully` });
+  } catch (err) {
+    return res.status(500).json({ error: `Error deleting router: ${err.message}` });
+  }
+}

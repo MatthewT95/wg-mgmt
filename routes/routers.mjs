@@ -7,7 +7,8 @@ import {
   routerDownController,
   routerRestartController,
   createRouterController,
-  updateRouterController
+  updateRouterController,
+  deleteRouterController
 } from '../controllers/routersController.mjs';
 
 import  lanRouter  from './lans.mjs';   // <-- import your LAN sub‐router here
@@ -50,6 +51,10 @@ router.post('/create', createRouterController);
 // Mount LAN routes under each router
 // e.g.  GET /routers/r003/lan/…  will be handled by lanRouter
 router.use('/:routerId/lan', lanRouter);
+
+// DELETE a router by ID
+// DELETE /routers/:id/delete
+router.delete('/:id/delete', deleteRouterController);
 
 // Mount remote routes under each router
 // e.g.  GET /routers/r003/remotes/…  will be handled by remoteRouter
