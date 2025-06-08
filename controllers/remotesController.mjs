@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import fsSync from 'fs';
 import TOML from '@iarna/toml';
 import { fileURLToPath } from 'url';
+import { generateWireGuardKeyPair } from '../utils/keys.mjs';
 
 // Recreate __filename and __dirname in ESM:
 const __filename = fileURLToPath(import.meta.url);
@@ -87,4 +88,68 @@ export async function getRemoteController(req, res) {
     ...remoteConfig,
     status: 'success'
   });
+}
+
+export async function createRemoteController(req, res) {
+  const  routerId = req.params.routerId;
+  const remoteId = req.params.remoteId || (Math.floor(1000 + Math.random() * 9000)).toString(); // Generate a random remoteId if not provided
+  
+  const { name, lanId,address } = req.body;
+
+  console.log(`Creating remote ${remoteId} for router: ${routerId}`);
+  const dataDir = path.join(__dirname, '..', 'data');
+  const routersDir = path.join(dataDir, 'routers');
+  const routerPath = path.join(routersDir, routerId);
+
+  // Check if the router directory exists
+  try {
+    await fs.access(routerPath);
+  } catch (err) {
+    return res.status(404).json({ message: `Router ${routerId} not found`, status: 'error' });
+  }
+
+  // check if the remote already exists
+  const remoteFilePath = path.join(routerPath, `${remoteId}.remote.toml`);
+  try {
+    await fs.access(remoteFilePath);
+    return res.status(409).json({ message: `Remote ${remoteId} already exists for router ${routerId}`, status: 'error' });
+  } catch (err) {
+    // File does not exist, proceed to create it
+  }
+
+  // Check if lanId and address are provided
+  if (!lanId || !address) {
+    return res.status(400).json({ message: 'LAN ID and address are required', status: 'error' });
+  }
+
+  // Generate wireguard key pair
+  const { privateKey, publicKey } = await generateWireGuardKeyPair();
+  if (!privateKey || !publicKey) {
+    return res.status(500).json({ message: 'Failed to generate WireGuard key pair', status: 'error' });
+  }
+
+  // Create the remote configuration object
+  const remoteConfig = {
+    name: name || `Remote ${remoteId}`,
+    lanId: lanId,
+    address: address,
+    publicKey: publicKey,
+    privateKey: privateKey,
+  };
+
+  // Write the remote configuration to a file
+  try {
+    await fs.writeFile(remoteFilePath, TOML.stringify(remoteConfig), 'utf8');
+  } catch (err) {
+    console.error(`Error writing remote configuration for ${remoteId}: ${err.message}`);
+    return res.status(500).json({ message: `Error creating remote ${remoteId} for router ${routerId}`, status: 'error' });
+  }
+
+  return res.status(201).json({
+    id: remoteId,
+    ...remoteConfig,
+    message: `Remote ${remoteId} created successfully for router ${routerId}`,
+    status: 'success'
+  });
+
 }
