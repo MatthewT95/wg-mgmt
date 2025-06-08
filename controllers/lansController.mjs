@@ -200,3 +200,35 @@ export async function updateLANController(req, res) {
     return res.status(500).json({ message: `Error updating LAN ${lanId} for router ${routerId}`, status: 'error' });
   }
 }
+
+export async function deleteLANController(req, res) {
+  const { routerId, lanId } = req.params;
+  console.log(`Deleting LAN ${lanId} for router: ${routerId}`);
+  const dataDir = path.join(__dirname,'..','data');
+  const routersDir = path.join(dataDir, 'routers');
+  const routerPath = path.join(routersDir, routerId);
+  const lanFilePath = path.join(routerPath, `${lanId}.lan.toml`);
+
+  // Check if the router directory exists
+  try {
+    await fs.access(routerPath);
+  } catch (err) {
+    return res.status(404).json({ message: `Router ${routerId} not found`, status: 'error' });
+  }
+
+  // Check if the LAN configuration file exists
+  try {
+    await fs.access(lanFilePath);
+  } catch (err) {
+    return res.status(404).json({ message: `LAN ${lanId} not found in router ${routerId}`, status: 'error' });
+  }
+
+  // Delete the LAN configuration file
+  try {
+    await fs.unlink(lanFilePath);
+    return res.status(200).json({ message: `LAN ${lanId} deleted successfully from router ${routerId}`, status: 'success' });
+  } catch (err) {
+    console.error(`Error deleting LAN configuration for ${lanId}: ${err.message}`);
+    return res.status(500).json({ message: `Error deleting LAN ${lanId} for router ${routerId}`, status: 'error' });
+  }
+}

@@ -1,6 +1,6 @@
 // routes/lan.mjs
 import express from 'express';
-import { getLANsController, getLANController,createLANController,updateLANController} from '../controllers/lansController.mjs';
+import { getLANsController, getLANController,createLANController,updateLANController,deleteLANController} from '../controllers/lansController.mjs';
 
 // Note the mergeParams option:
 const lanRouter = express.Router({ mergeParams: true });
@@ -19,5 +19,8 @@ lanRouter.put('/:lanId/update', updateLANController);
 
 // POST /routers/:routerId/lan/create → create a new LAN configuration
 lanRouter.post('/create', createLANController);
+
+// DELETE /routers/:routerId/lan/:lanId/delete → delete a specific LAN configuration
+lanRouter.delete('/:lanId/delete', deleteLANController);
 
 export default lanRouter;
