@@ -246,7 +246,7 @@ export async function routerRestartController(req, res) {
 }
 
 export async function createRouterController(req, res) {
-  const routerId = req.params.id;
+  const routerId = req.params.id || (Math.floor(100 + Math.random() * 900)).toString(); // Generate a random ID if not provided
   const routerPath = path.join(__dirname, '../data/routers', routerId);
 
   // Check if the router directory already exists
