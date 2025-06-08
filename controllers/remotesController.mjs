@@ -4,8 +4,6 @@ import fsSync from 'fs';
 import TOML from '@iarna/toml';
 import { fileURLToPath } from 'url';
 import { generateWireGuardKeyPair } from '../utils/keys.mjs';
-import { generateEndDeviceInterfaceConfig } from '../utils/wg_config.mjs';
-import { response } from 'express';
 
 // Recreate __filename and __dirname in ESM:
 const __filename = fileURLToPath(import.meta.url);
@@ -24,19 +22,19 @@ export async function getRemotesController(req, res) {
   console.log(`Data directory: ${dataDir}`);
   const routersDir = path.join(dataDir, 'routers');
   console.log(`Routers directory: ${routersDir}`);
-  const routerPath = path.join(routersDir, routerId);
+  const routerFilePath = path.join(routersDir, routerId);
 
   // Check if the router directory exists
   try {
-    await fs.access(routerPath);
+    await fs.access(routerFilePath);
   } catch (err) {
     return res.status(404).json({ message: `Router ${routerId} not found`, status: 'error' });
   }
 
-  const remoteConfigFiles = (await fs.readdir(routerPath)).filter(file => file.endsWith('.remote.toml'));
+  const remoteConfigFiles = (await fs.readdir(routerFilePath)).filter(file => file.endsWith('.remote.toml'));
   const remoteConfigs = remoteConfigFiles.map(file => {
     const remoteId = file.replace('.remote.toml', '');
-    const remoteConfig = TOML.parse(fsSync.readFileSync(path.join(routerPath, file), 'utf8'));
+    const remoteConfig = TOML.parse(fsSync.readFileSync(path.join(routerFilePath, file), 'utf8'));
     return {
       id: remoteId,
       ...remoteConfig
@@ -62,16 +60,16 @@ export async function getRemoteController(req, res) {
   console.log(`Fetching remote ${remoteId} for router: ${routerId}`);
   const dataDir = path.join(__dirname, '..', 'data');
   const routersDir = path.join(dataDir, 'routers');
-  const routerPath = path.join(routersDir, routerId);
+  const routerFilePath = path.join(routersDir, routerId);
 
   // Check if the router directory exists
   try {
-    await fs.access(routerPath);
+    await fs.access(routerFilePath);
   } catch (err) {
     return res.status(404).json({ message: `Router ${routerId} not found`, status: 'error' });
   }
 
-  const remoteFilePath = path.join(routerPath, `${remoteId}.remote.toml`);
+  const remoteFilePath = path.join(routerFilePath, `${remoteId}.remote.toml`);
   
   // Check if the remote configuration file exists
   try {
@@ -101,17 +99,17 @@ export async function createRemoteController(req, res) {
   console.log(`Creating remote ${remoteId} for router: ${routerId}`);
   const dataDir = path.join(__dirname, '..', 'data');
   const routersDir = path.join(dataDir, 'routers');
-  const routerPath = path.join(routersDir, routerId);
+  const routerFilePath = path.join(routersDir, routerId);
 
   // Check if the router directory exists
   try {
-    await fs.access(routerPath);
+    await fs.access(routerFilePath);
   } catch (err) {
     return res.status(404).json({ message: `Router ${routerId} not found`, status: 'error' });
   }
 
   // check if the remote already exists
-  const remoteFilePath = path.join(routerPath, `${remoteId}.remote.toml`);
+  const remoteFilePath = path.join(routerFilePath, `${remoteId}.remote.toml`);
   try {
     await fs.access(remoteFilePath);
     return res.status(409).json({ message: `Remote ${remoteId} already exists for router ${routerId}`, status: 'error' });
@@ -163,14 +161,17 @@ export async function getRemoteClientConfigController(req, res) {
   console.log(`Fetching client config for remote ${remoteId} of router: ${routerId}`);
   const dataDir = path.join(__dirname, '..', 'data');
   const routersDir = path.join(dataDir, 'routers');
-  const routerPath = path.join(routersDir, routerId);
+  const routerFilePath = path.join(routersDir, routerId);
+  const remoteFilePath = path.join(routerFilePath, `${remoteId}.remote.toml`);
+
   // Check if the router directory exists
   try {
-    await fs.access(routerPath);
+    await fs.access(routerFilePath);
   } catch (err) {
     return res.status(404).json({ message: `Router ${routerId} not found`, status: 'error' });
   }
-  const remoteFilePath = path.join(routerPath, `${remoteId}.remote.toml`);
+
+  const routerConfig = TOML.parse(fsSync.readFileSync(path.join(routerFilePath, 'router.toml'), 'utf8'));
 
   // Check if the remote configuration file exists
   try {
@@ -179,18 +180,36 @@ export async function getRemoteClientConfigController(req, res) {
     return res.status(404).json({ message: `Remote ${remoteId} not found for router ${routerId}`, status: 'error' });
   }
 
+  const remoteConfig = TOML.parse(fsSync.readFileSync(remoteFilePath, 'utf8'));
+
+
+  // Check if lan configuration exists
+  const lanFilePath = path.join(routerFilePath, `${remoteConfig.lanId}.lan.toml`);
+  let network = '';
+  try {
+    await fs.access(lanFilePath);
+    const lanConfig = TOML.parse(fsSync.readFileSync(lanFilePath, 'utf8'));
+    network = lanConfig.network;
+  } catch (err) {
+    return res.status(404).json({ message: `LAN configuration not found for remote ${remoteId} of router ${routerId}`, status: 'error' });
+  }
+
+  
+  const lanConfig = TOML.parse(fsSync.readFileSync(lanFilePath, 'utf8'));
+  const remoteNetworks = (await fs.readdir(routerFilePath)).filter(file => file.endsWith('.lan.toml')).map(file => { return TOML.parse(fsSync.readFileSync(path.join(routerFilePath, file), 'utf8')).network; });
+
+
   let response = {
-    clientConfig: generateEndDeviceInterfaceConfig(routerId, remoteId),
+    clientPrivateKey: remoteConfig.privateKey,
+    clientAddress: remoteConfig.address,
+    network: lanConfig.network,
+    serverPublicKey: routerConfig.publicKey,
+    remoteNetworks: remoteNetworks,
+    remotePot: lanConfig.port || 51820,
     message: '',
     status: ''
   };
 
-  // Check if the client config was generated successfully
-  if (!response.clientConfig) {
-    response.message = `Failed to generate client config for remote ${remoteId} of router ${routerId}`;
-    response.status = 'error';
-    return res.status(500).json(response);
-  }
   response.message = `Client config for remote ${remoteId} of router ${routerId} generated successfully`;
   response.status = 'success';
   return res.status(200).json(response);
