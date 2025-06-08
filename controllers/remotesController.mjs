@@ -267,3 +267,36 @@ export async function updateRemoteController(req, res) {
     return res.status(500).json({ message: `Error updating remote ${remoteId} for router ${routerId}`, status: 'error' });
   }
 }
+
+export async function deleteRemoteController(req, res) {
+  const routerId = req.params.routerId;
+  const remoteId = req.params.remoteId;
+  console.log(`Deleting remote ${remoteId} for router: ${routerId}`);
+  const dataDir = path.join(__dirname, '..', 'data');
+  const routersDir = path.join(dataDir, 'routers');
+  const routerFilePath = path.join(routersDir, routerId);
+  const remoteFilePath = path.join(routerFilePath, `${remoteId}.remote.toml`);
+
+  // Check if the router directory exists
+  try {
+    await fs.access(routerFilePath);
+  } catch (err) {
+    return res.status(404).json({ message: `Router ${routerId} not found`, status: 'error' });
+  }
+
+  // Check if the remote configuration file exists
+  try {
+    await fs.access(remoteFilePath);
+  } catch (err) {
+    return res.status(404).json({ message: `Remote ${remoteId} not found for router ${routerId}`, status: 'error' });
+  }
+
+  // Delete the remote configuration file
+  try {
+    await fs.unlink(remoteFilePath);
+    return res.status(200).json({ message: `Remote ${remoteId} deleted successfully for router ${routerId}`, status: 'success' });
+  } catch (err) {
+    console.error(`Error deleting remote configuration for ${remoteId}: ${err.message}`);
+    return res.status(500).json({ message: `Error deleting remote ${remoteId} for router ${routerId}`, status: 'error' });
+  }
+}
