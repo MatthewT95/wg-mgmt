@@ -69,7 +69,7 @@ export async function getRouterController(req, res) {
 
 export async function createRouterController(req, res) {
   const {  name, domain,vpcId} = req.body;
-  const routerId = req.params.routerId || Math.random().toString(36).substring(2, 15); // Generate a random router ID if not provided
+  const routerId = req.params.routerId || ("router-"+Math.random().toString(36).substring(2, 10))
   const dataDir = path.join(__dirname, '..', 'data');
   const routerDir = path.join(dataDir, 'routers');
 
@@ -91,7 +91,7 @@ export async function createRouterController(req, res) {
   // Create the router configuration object
   const routerConfig = {
     id: routerId,
-    name: name || 'Default Router Name',
+    name: name || routerId,
     domain: domain || 'default.domain.com',
     vpcId: vpcId || 'default',
     createdAt: new Date().toISOString(),

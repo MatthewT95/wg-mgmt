@@ -11,8 +11,8 @@ export async function createVPCController(req, res) {
 
   console.log('Creating VPC...');
   // get the VPC ID from the request body
-  const vpcId = req.body.vpcId;
-  const vpcName = req.body.name || `VPC-${vpcId}`;
+  const vpcId = req.body.vpcId || ("vpc-"+Math.random().toString(36).substring(2, 10));
+  const vpcName = req.body.name || vpcId;
   
   // Define the data directory and VPC directory
   const dataDir = path.join(__dirname, '..', 'data');
@@ -25,13 +25,13 @@ export async function createVPCController(req, res) {
 
   // Validate the VPC name and set a default if not invalid
   if (typeof vpcName !== 'string' || vpcName.trim() === '') {
-    vpcName = `VPC-${vpcId}`;
+    vpcName = `${vpcId}`;
   }
 
   // Buiild the VPC configuration
   const vpcConfig ={
     id: vpcId,
-    name: req.body.name || `VPC-${vpcId}`,
+    name: vpcName,
     metadata: {},
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
@@ -100,7 +100,14 @@ export async function updateVPCController(req, res) {
   const dataDir = path.join(__dirname, '..', 'data');
   const vpcDir = path.join(dataDir, 'vpc');
 
+  // Ensure the VPC file exists
   try {
+    await fs.access(path.join(vpcDir, `${vpcId}.vpc.toml`));
+  } catch (error) {
+    return res.status(404).json({ message: `VPC ${vpcId} not found`, status: 'error' });
+  }
+  try {
+    // Read the existing VPC configuration
     const vpcContent = await fs.readFile(path.join(vpcDir, `${vpcId}.vpc.toml`), 'utf8');
     const vpcConfig = TOML.parse(vpcContent);
 
