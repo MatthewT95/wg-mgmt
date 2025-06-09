@@ -2,6 +2,7 @@ import path from 'path';
 import { promises as fs } from 'fs';
 import TOML from '@iarna/toml';
 import { fileURLToPath } from 'url';
+import { VPCIdExists } from '../utils/vaildate.mjs';
 
 // Recreate __filename and __dirname in ESM:
 const __filename = fileURLToPath(import.meta.url);
@@ -68,19 +69,9 @@ export async function createRouterController(req, res) {
   const dataDir = path.join(__dirname, '..', 'data');
   const routerDir = path.join(dataDir, 'routers');
 
-  // Ensure the routers directory exists
-  try {
-    await fs.access(routerDir);
-  } catch (err) {
-    await fs.mkdir(routerDir, { recursive: true });
-  }
-
-  // Check if the router already exists
-  try {
-    await fs.access(path.join(routerDir, `${routerId}.router.toml`));
-    return res.status(400).json({ message: `Router ${routerId} already exists`, status: 'error' });
-  } catch (err) {
-    // Router does not exist, proceed to create it
+  // Validate the VPC ID
+  if (vpcId && !(await VPCIdExists(vpcId))) {
+    return res.status(404).json({ message: `VPC ${vpcId} does not exist`, status: 'error' });
   }
 
   // Create the router configuration object

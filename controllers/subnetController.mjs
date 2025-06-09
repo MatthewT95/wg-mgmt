@@ -2,6 +2,7 @@ import path from 'path';
 import { promises as fs, stat } from 'fs';
 import TOML from '@iarna/toml';
 import { fileURLToPath } from 'url';
+import { VPCIdExists,routerIdExists,subnetIdExists } from '../utils/vaildate.mjs';
 
 // Recreate __filename and __dirname in ESM:
 const __filename = fileURLToPath(import.meta.url);
@@ -54,30 +55,19 @@ export async function createSubnetController(req, res) {
     port = Math.floor(Math.random() * (65535 - 50000 + 1) + 50000); // Random port between 50000 and 65535
   }
 
-  // Vaildate the VPC exists
-  const vpcDir = path.join(dataDir, 'vpc');
-  try {
-    await fs.access(path.join(vpcDir, `${req.body.vpcId}.vpc.toml`));
-  }
-  catch (err) {
+  // Validate the VPC exists
+  if (!await VPCIdExists(req.body.vpcId)) {
     return res.status(404).json({ message: `VPC ${req.body.vpcId} not found`, status: 'error' });
   }
-
-  // Vaildate the router exists
-  const routerDir = path.join(dataDir, 'routers');
-  try {
-    await fs.access(path.join(routerDir, `${req.body.routerId}.router.toml`));
-  }
-  catch (err) {
+  
+  // Validate the router exists
+  if (!await routerIdExists(req.body.routerId)) {
     return res.status(404).json({ message: `Router ${req.body.routerId} not found`, status: 'error' });
   }
 
   // Check if the subnet already exists
-  try {
-    await fs.access(path.join(subnetDir, `${subnetId}.subnet.toml`));
+  if (await subnetIdExists(subnetId)) {
     return res.status(400).json({ message: `Subnet ${subnetId} already exists`, status: 'error' });
-  } catch (err) {
-    // Subnet does not exist, proceed to create it
   }
 
   // Build the subnet configuration
