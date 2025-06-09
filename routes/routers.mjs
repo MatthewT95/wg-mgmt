@@ -1,64 +1,23 @@
-// routes/routers.mjs
+// routes/vpcs.mjs
 import express from 'express';
-import {
-  getRoutersController,
-  getRouterController,
-  routerUpController,
-  routerDownController,
-  routerRestartController,
-  createRouterController,
-  updateRouterController,
-  deleteRouterController
-} from '../controllers/routersController.mjs'; // Import the necessary controllers for router operations
+ import { getRoutersController,getRouterController,createRouterController } from '../controllers/routersControllers.mjs';
 
-import  lanRouter  from './lans.mjs';   // <-- import your LAN sub‐router here
-import remoteRouter from './remotes.mjs'; // <-- import your remote sub‐router here
+// Note the mergeParams option:
+const routerRouter = express.Router({mergeParams: true});
 
-// Create a new express router instance
-const router = express.Router({ mergeParams: true });
+// GET /router/ → list all VPCs
+routerRouter.get('/', getRoutersController);
 
-// lists all virtual routers and their information
-// GET /routers
-router.get('/', getRoutersController);
+// // POST /router/ → create a new VPC
+routerRouter.post('/', createRouterController);
 
-// retrieves information for a specific virtual router by ID
-// GET /routers/:id
-router.get('/:id', getRouterController);
+// // GET /router/:routerId → get a specific VPC configuration
+routerRouter.get('/:routerId', getRouterController);
 
-// starts a virtual router by ID
-// POST /routers/:id/up
-router.post('/:id/up', routerUpController);
+// // PUT /router/:routerId/update → update an existing VPC configuration
+// routerRouter.put('/:routerId', null);
 
-// stops a virtual router by ID
-// POST /routers/:id/down
-router.post('/:id/down', routerDownController);
+// // DELETE /router/:routerId/delete → delete a specific VPC configuration
+// routerRouter.delete('/:routerId', null);
 
-// Restarts a virtual router
-// POST /routers/:id/restart
-router.post('/:id/restart', routerRestartController);
-
-// Creates a new virtual router with a specific ID using PUT
-// PUT /routers/:id/create
-router.put('/:id/create', createRouterController);
-
-// Updates a virtual router with a specific ID using PUT
-// PUT /routers/:id/update
-router.put('/:id/update', updateRouterController);
-
-// Creates a new virtual router with random id using POST
-// POST /routers/create
-router.post('/create', createRouterController);
-
-// DELETE a virtual router by ID using DELETE
-// DELETE /routers/:id/delete
-router.delete('/:id/delete', deleteRouterController);
-
-// Mount LAN routes under each router
-// e.g.  GET /routers/r003/lan/…  will be handled by lanRouter
-router.use('/:routerId/lan', lanRouter);
-
-// Mount remote routes under each router
-// e.g.  GET /routers/r003/remotes/…  will be handled by remoteRouter
-router.use('/:routerId/remote', remoteRouter);
-
-export default router;
+export default routerRouter;

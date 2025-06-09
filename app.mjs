@@ -3,6 +3,7 @@ import express from 'express';
 import path from 'path';
 import fs from 'fs';
 import vpcRouter from './routes/vpc.mjs';
+import routersRouter from './routes/routers.mjs'; // Import the routers module
 
 const app = express();
 const port = 3000;
@@ -25,7 +26,11 @@ try {
 
 app.use(express.json());
 
+// Import and use the vpcRouter
 app.use('/vpc', vpcRouter);
+
+// Import and use the routersRouter
+app.use('/routers', routersRouter);
 
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`);
