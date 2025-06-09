@@ -25,6 +25,14 @@ try {
   fs.mkdirSync(vpcDir, { recursive: true });
 }
 
+const subnetDir = path.join(dataDir, 'subnets');
+try {
+  fs.accessSync(subnetDir);
+}
+catch {
+  fs.mkdirSync(subnetDir, { recursive: true });
+}
+
 app.use(express.json());
 
 // Import and use the vpcRouter
