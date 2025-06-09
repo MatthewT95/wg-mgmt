@@ -68,7 +68,7 @@ export async function getRouterController(req, res) {
 }
 
 export async function createRouterController(req, res) {
-  const {  name, domain} = req.body;
+  const {  name, domain,vpcId} = req.body;
   const routerId = req.params.routerId || Math.random().toString(36).substring(2, 15); // Generate a random router ID if not provided
   const dataDir = path.join(__dirname, '..', 'data');
   const routerDir = path.join(dataDir, 'routers');
@@ -93,6 +93,7 @@ export async function createRouterController(req, res) {
     id: routerId,
     name: name || 'Default Router Name',
     domain: domain || 'default.domain.com',
+    vpcId: vpcId || 'default',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
@@ -111,4 +112,54 @@ export async function createRouterController(req, res) {
     return res.status(500).json({ message: `Error creating router ${routerId}`, status: 'error' });
   }
 
+}
+
+export async function updateRouterController(req, res) {
+  const routerId = req.params.routerId;
+  const dataDir = path.join(__dirname, '..', 'data');
+  const routerDir = path.join(dataDir, 'routers');
+
+  try {
+    const routerContent = await fs.readFile(path.join(routerDir, `${routerId}.router.toml`), 'utf8');
+    const routerConfig = TOML.parse(routerContent);
+
+    // Update the router configuration with new values
+    if (req.body.name) routerConfig.name = req.body.name;
+    if (req.body.domain) routerConfig.domain = req.body.domain;
+    routerConfig.updatedAt = new Date().toISOString();
+
+    // Write the updated router configuration back to the file
+    await fs.writeFile(path.join(routerDir, `${routerId}.router.toml`), TOML.stringify(routerConfig), 'utf8');
+
+    return res.status(200).json({
+      message: `Router ${routerId} updated successfully`,
+      router: { id: routerId, ...routerConfig },
+      status: 'success'
+    });
+  } catch (error) {
+    console.error(`Error updating router ${routerId}:`, error);
+    return res.status(404).json({ message: `Router ${routerId} not found`, status: 'error' });
+  }
+}
+
+export async function deleteRouterController(req, res) {
+  const routerId = req.params.routerId;
+  const dataDir = path.join(__dirname, '..', 'data');
+  const routerDir = path.join(dataDir, 'routers');
+
+  // Check if the router exists
+  try {
+    await fs.access(path.join(routerDir, `${routerId}.router.toml`));
+  } catch (err) {
+    return res.status(404).json({ message: `Router ${routerId} not found`, status: 'error' });
+  }
+
+  // Delete the router file
+  try {
+    await fs.unlink(path.join(routerDir, `${routerId}.router.toml`));
+    return res.status(200).json({ message: `Router ${routerId} deleted successfully`, status: 'success' });
+  } catch (err) {
+    console.error(`Error deleting router ${routerId}:`, err);
+    return res.status(500).json({ message: `Error deleting router ${routerId}`, status: 'error' });
+  }
 }
