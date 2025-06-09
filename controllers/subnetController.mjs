@@ -55,11 +55,6 @@ export async function createSubnetController(req, res) {
     port = Math.floor(Math.random() * (65535 - 50000 + 1) + 50000); // Random port between 50000 and 65535
   }
 
-  // Validate the VPC exists
-  if (!await VPCIdExists(req.body.vpcId)) {
-    return res.status(404).json({ message: `VPC ${req.body.vpcId} not found`, status: 'error' });
-  }
-  
   // Validate the router exists
   if (!await routerIdExists(req.body.routerId)) {
     return res.status(404).json({ message: `Router ${req.body.routerId} not found`, status: 'error' });
@@ -75,7 +70,6 @@ export async function createSubnetController(req, res) {
     id: subnetId,
     name: subnetName,
     metadata: {},
-    vpcId: req.body.vpcId,
     routerId: req.body.routerId,
     network:req.body.network,
     gateway: req.body.gateway,
