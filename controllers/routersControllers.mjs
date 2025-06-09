@@ -2,7 +2,6 @@ import path from 'path';
 import { promises as fs } from 'fs';
 import TOML from '@iarna/toml';
 import { fileURLToPath } from 'url';
-import { create } from 'domain';
 
 // Recreate __filename and __dirname in ESM:
 const __filename = fileURLToPath(import.meta.url);
