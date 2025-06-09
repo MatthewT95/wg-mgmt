@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import vpcRouter from './routes/vpc.mjs';
 import routersRouter from './routes/routers.mjs'; // Import the routers module
+import subnetRouter from './routes/subnets.mjs'; // Import the subnets module
 
 const app = express();
 const port = 3000;
@@ -31,6 +32,9 @@ app.use('/vpc', vpcRouter);
 
 // Import and use the routersRouter
 app.use('/routers', routersRouter);
+
+// Import and use the subnetRouter
+app.use('/subnets', subnetRouter);
 
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`);
