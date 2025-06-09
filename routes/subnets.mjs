@@ -1,6 +1,7 @@
 // routes/subnets.mjs
 import express from 'express';
 import { createSubnetController, deleteSubnetController ,listSubnetsController,getSubnetController,updateSubnetController} from '../controllers/subnetController.mjs';
+import { subnetExistsMiddleware } from '../utils/middleware.mjs';
 
 // Note the mergeParams option:
 const subnetRouter = express.Router({mergeParams: true});
@@ -12,12 +13,12 @@ subnetRouter.get('/', listSubnetsController);
 subnetRouter.post('/', createSubnetController);
 
 // GET /subnet/:subnetId → get a specific subnet configuration
-subnetRouter.get('/:subnetId', getSubnetController);
+subnetRouter.get('/:subnetId', subnetExistsMiddleware, getSubnetController);
 
 // PUT /subnet/:subnetId/update → update an existing subnet configuration
-subnetRouter.put('/:subnetId', updateSubnetController);
+subnetRouter.put('/:subnetId', subnetExistsMiddleware, updateSubnetController);
 
 // DELETE /subnet/:subnetId/delete → delete a specific subnet configuration
-subnetRouter.delete('/:subnetId', deleteSubnetController);
+subnetRouter.delete('/:subnetId', subnetExistsMiddleware, deleteSubnetController);
 
 export default subnetRouter;

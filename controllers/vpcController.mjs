@@ -81,18 +81,13 @@ export async function getVPCController(req, res) {
   const dataDir = path.join(__dirname, '..', 'data');
   const vpcDir = path.join(dataDir, 'vpc');
 
-  try {
-    const vpcContent = await fs.readFile(path.join(vpcDir, `${vpcId}.vpc.toml`), 'utf8');
-    const vpcConfig = TOML.parse(vpcContent);
-    return res.status(200).json({
-      message: `Details of VPC ${vpcId}`,
-      vpc: { id: vpcId, ...vpcConfig },
-      status: 'success'
-    });
-  } catch (error) {
-    console.error(`Error fetching VPC ${vpcId}:`, error);
-    return res.status(404).json({ message: `VPC ${vpcId} not found`, status: 'error' });
-  }
+  const vpcContent = await fs.readFile(path.join(vpcDir, `${vpcId}.vpc.toml`), 'utf8');
+  const vpcConfig = TOML.parse(vpcContent);
+  return res.status(200).json({
+    message: `Details of VPC ${vpcId}`,
+    vpc: { id: vpcId, ...vpcConfig },
+    status: 'success'
+  });
 }
 
 export async function updateVPCController(req, res) {

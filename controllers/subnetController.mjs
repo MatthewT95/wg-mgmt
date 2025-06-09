@@ -112,18 +112,6 @@ export async function deleteSubnetController(req, res) {
   const dataDir = path.join(__dirname, '..', 'data');
   const subnetDir = path.join(dataDir, 'subnets');
 
-  // Validate the subnet ID
-  if (!subnetId || typeof subnetId !== 'string' || subnetId.trim() === '') {
-    return res.status(400).json({ message: 'Subnet ID is required', status: 'error' });
-  }
-
-  // Check if the subnet exists
-  try {
-    await fs.access(path.join(subnetDir, `${subnetId}.subnet.toml`));
-  } catch (err) {
-    return res.status(404).json({ message: `Subnet ${subnetId} not found`, status: 'error' });
-  }
-
   // Delete the subnet file
   await fs.unlink(path.join(subnetDir, `${subnetId}.subnet.toml`));
 
@@ -169,12 +157,10 @@ export async function listSubnetsController(req, res) {
 export async function getSubnetController(req, res) {
   const subnetId = req.params.subnetId;
   const filePath = path.join(__dirname, '..', 'data', 'subnets', `${subnetId}.subnet.toml`);
-  try {
-    const content = await fs.readFile(filePath, 'utf8');
-    return res.json({ subnet: TOML.parse(content) ,message: `Subnet ${subnetId} found`, status: 'success' });
-  } catch (err) {
-    return res.status(404).json({ message: `Subnet ${subnetId} not found`, status: 'error' });
-  }
+
+  const content = await fs.readFile(filePath, 'utf8');
+  return res.json({ subnet: TOML.parse(content) ,message: `Subnet ${subnetId} found`, status: 'success' });
+
 }
 
 // Update a subnet
@@ -182,59 +168,43 @@ export async function updateSubnetController(req, res) {
   const subnetId = req.params.subnetId;
   const filePath = path.join(__dirname, '..', 'data', 'subnets', `${subnetId}.subnet.toml`);
 
-  // Validate the subnet ID
-  if (!subnetId || typeof subnetId !== 'string' || subnetId.trim() === '') {
-    return res.status(400).json({ message: 'Subnet ID is required', status: 'error' });
-  }
-
   // Vaildate the request body
   if (!req.body || typeof req.body !== 'object') {
     return res.status(400).json({ message: 'Request body is required', status: 'error' });
   }
 
-  // Check if the subnet exists
-  try {
-    await fs.access(filePath);
-  } catch (err) {
-    return res.status(404).json({ message: `Subnet ${subnetId} not found`, status: 'error' });
+  const content = await fs.readFile(filePath, 'utf8');
+  const subnet = TOML.parse(content);
+
+  //Update the subnet properties based on the request body
+  if (req.body.name) {
+    subnet.name = req.body.name;
   }
 
-  try {
-    const content = await fs.readFile(filePath, 'utf8');
-    const subnet = TOML.parse(content);
-
-    //Update the subnet properties based on the request body
-    if (req.body.name) {
-      subnet.name = req.body.name;
+  // Update routerId, network, gateway, and port if provided
+  if (req.body.routerId) {
+    // Check if the router exists
+    const routerDir = path.join(__dirname, '..', 'data', 'routers');
+    try {
+      await fs.access(path.join(routerDir, `${req.body.routerId}.router.toml`));
+    } catch (err) {
+      return res.status(404).json({ message: `Router ${req.body.routerId} not found`, status: 'error' });
     }
-
-    // Update routerId, network, gateway, and port if provided
-    if (req.body.routerId) {
-      // Check if the router exists
-      const routerDir = path.join(__dirname, '..', 'data', 'routers');
-      try {
-        await fs.access(path.join(routerDir, `${req.body.routerId}.router.toml`));
-      } catch (err) {
-        return res.status(404).json({ message: `Router ${req.body.routerId} not found`, status: 'error' });
-      }
-      // If the router exists, update the subnet's routerId
-      subnet.routerId = req.body.routerId;
-    }
-    if (req.body.network) {
-      subnet.network = req.body.network;
-    }
-    if (req.body.gateway) {
-      subnet.gateway = req.body.gateway;
-    }
-    if (req.body.port) {
-      subnet.port = req.body.port;
-    }
-    subnet.updatedAt = new Date().toISOString();
-
-    // Write the updated subnet back to the file
-    await fs.writeFile(filePath, TOML.stringify(subnet), 'utf8');
-    return res.json({ message: `Subnet ${subnetId} updated`, subnet: subnet, status: 'success' });
-  } catch (err) {
-    return res.status(404).json({ message: `Subnet ${subnetId} not found`, status: 'error' });
+    // If the router exists, update the subnet's routerId
+    subnet.routerId = req.body.routerId;
   }
+  if (req.body.network) {
+    subnet.network = req.body.network;
+  }
+  if (req.body.gateway) {
+    subnet.gateway = req.body.gateway;
+  }
+  if (req.body.port) {
+    subnet.port = req.body.port;
+  }
+  subnet.updatedAt = new Date().toISOString();
+
+  // Write the updated subnet back to the file
+  await fs.writeFile(filePath, TOML.stringify(subnet), 'utf8');
+  return res.json({ message: `Subnet ${subnetId} updated`, subnet: subnet, status: 'success' });
 }
