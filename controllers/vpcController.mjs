@@ -2,6 +2,7 @@ import path from 'path';
 import { promises as fs } from 'fs';
 import TOML from '@iarna/toml';
 import { fileURLToPath } from 'url';
+import ApiResponse from '../utils/apiResponse.mjs';
 
 // Recreate __filename and __dirname in ESM:
 const __filename = fileURLToPath(import.meta.url);
@@ -9,6 +10,8 @@ const __dirname = path.dirname(__filename);
 
 export async function createVPCController(req, res) {
 
+  let response = new ApiResponse();
+  
   console.log('Creating VPC...');
   // get the VPC ID from the request body
   const vpcId = req.body.vpcId || ("vpc-"+Math.random().toString(36).substring(2, 10));
@@ -18,18 +21,13 @@ export async function createVPCController(req, res) {
   const dataDir = path.join(__dirname, '..', 'data');
   const vpcDir = path.join(dataDir, 'vpc');
 
-  // Validate the VPC ID
-  if (!vpcId) {
-    return res.status(400).json({ message: 'VPC ID is required', status: 'error' });
-  }
-
   // Validate the VPC name and set a default if not invalid
   if (typeof vpcName !== 'string' || vpcName.trim() === '') {
     vpcName = `${vpcId}`;
   }
 
-  // Buiild the VPC configuration
-  const vpcConfig ={
+  // Build the VPC configuration
+  const vpcConfig = {
     id: vpcId,
     name: vpcName,
     metadata: {},
@@ -40,11 +38,8 @@ export async function createVPCController(req, res) {
   // write the VPC configuration to a file
   await fs.writeFile(path.join(vpcDir, `${vpcId}.vpc.toml`), TOML.stringify(vpcConfig), 'utf8');
   console.log(`VPC ${vpcId} created successfully with name: ${vpcName}`);
-  return res.status(201).json({
-    message: `VPC ${vpcId} created successfully`,
-    vpc: vpcConfig,
-    status: 'success'
-  });
+
+  return ApiResponse.CREATED(`VPC ${vpcId} created successfully`, { vpc: vpcConfig }).expressRespond(res);
 }
 
 export async function listVPCController(req, res) {
@@ -65,14 +60,10 @@ export async function listVPCController(req, res) {
       }
     }
 
-    return res.status(200).json({
-      message: `Found ${vpcs.length} VPCs`,
-      vpcs,
-      status: 'success'
-    });
+    return ApiResponse.OK(`Found ${vpcs.length} VPCs`, { vpcs }).expressRespond(res);
   } catch (error) {
     console.error('Error reading VPCs:', error);
-    return res.status(500).json({ message: 'Error fetching VPCs', status: 'error' });
+    return ApiResponse.INTERNAL_SERVER_ERROR('Error fetching VPCs').expressRespond(res);
   }
 }
 
@@ -83,11 +74,7 @@ export async function getVPCController(req, res) {
 
   const vpcContent = await fs.readFile(path.join(vpcDir, `${vpcId}.vpc.toml`), 'utf8');
   const vpcConfig = TOML.parse(vpcContent);
-  return res.status(200).json({
-    message: `Details of VPC ${vpcId}`,
-    vpc: { id: vpcId, ...vpcConfig },
-    status: 'success'
-  });
+  return ApiResponse.OK(`Details of VPC ${vpcId}`, { vpc: { id: vpcId, ...vpcConfig } }).expressRespond(res);
 }
 
 export async function updateVPCController(req, res) {
@@ -99,7 +86,7 @@ export async function updateVPCController(req, res) {
   try {
     await fs.access(path.join(vpcDir, `${vpcId}.vpc.toml`));
   } catch (error) {
-    return res.status(404).json({ message: `VPC ${vpcId} not found`, status: 'error' });
+    return ApiResponse.NOT_FOUND(`VPC ${vpcId} not found`).expressRespond(res);
   }
   try {
     // Read the existing VPC configuration
@@ -113,15 +100,11 @@ export async function updateVPCController(req, res) {
 
     // Write the updated VPC configuration back to the file
     await fs.writeFile(path.join(vpcDir, `${vpcId}.vpc.toml`), TOML.stringify(vpcConfig), 'utf8');
-    
-    return res.status(200).json({
-      message: `VPC ${vpcId} updated successfully`,
-      vpc: { id: vpcId, ...vpcConfig },
-      status: 'success'
-    });
+
+    return ApiResponse.OK(`VPC ${vpcId} updated successfully`, { vpc: { id: vpcId, ...vpcConfig } }).expressRespond(res);
   } catch (error) {
     console.error(`Error updating VPC ${vpcId}:`, error);
-    return res.status(404).json({ message: `VPC ${vpcId} not found`, status: 'error' });
+    return ApiResponse.INTERNAL_SERVER_ERROR(`Error updating VPC ${vpcId}`).expressRespond(res);
   }
 }
 
@@ -134,19 +117,16 @@ export async function deleteVPCController(req, res) {
   try {
     await fs.access(path.join(vpcDir, `${vpcId}.vpc.toml`));
   } catch (error) {
-    return res.status(404).json({ message: `VPC ${vpcId} not found`, status: 'error' });
+    return ApiResponse.NOT_FOUND(`VPC ${vpcId} not found`).expressRespond(res);
   }
 
   // Attempt to delete the VPC file
   try {
     await fs.unlink(path.join(vpcDir, `${vpcId}.vpc.toml`));
-    return res.status(200).json({
-      message: `VPC ${vpcId} deleted successfully`,
-      status: 'success'
-    });
+    return ApiResponse.OK(`VPC ${vpcId} deleted successfully`).expressRespond(res);
   } catch (error) {
     console.error(`Error deleting VPC ${vpcId}:`, error);
-    return res.status(404).json({ message: `VPC ${vpcId} not found`, status: 'error' });
+    return ApiResponse.INTERNAL_SERVER_ERROR(`Error deleting VPC ${vpcId}`).expressRespond(res);
   }
 }
 
@@ -171,13 +151,9 @@ export async function listVPCRoutersController(req, res) {
       }
     }
 
-    return res.status(200).json({
-      message: `Found ${routers.length} routers in VPC ${vpcId}`,
-      routers,
-      status: 'success'
-    });
+    return ApiResponse.OK(`Found ${routers.length} routers in VPC ${vpcId}`, { routers }).expressRespond(res);
   } catch (error) {
     console.error('Error reading routers:', error);
-    return res.status(500).json({ message: 'Error fetching routers', status: 'error' });
+    return ApiResponse.INTERNAL_SERVER_ERROR('Error fetching routers').expressRespond(res);
   }
 }

@@ -2,7 +2,8 @@ import path from 'path';
 import { promises as fs } from 'fs';
 import TOML from '@iarna/toml';
 import { fileURLToPath } from 'url';
-import { VPCIdExists } from '../utils/vaildate.mjs';
+import { VPCIdExists, routerIdExists} from '../utils/vaildate.mjs';
+import ApiResponse from '../utils/apiResponse.mjs';
 
 // Recreate __filename and __dirname in ESM:
 const __filename = fileURLToPath(import.meta.url);
@@ -17,7 +18,7 @@ export async function listRoutersController(req, res) {
     await fs.access(routerDir);
   } catch (err) {
     fs.mkdir(routerDir, { recursive: true });
-    return res.status(200).json({ message: 'No routers found', status: 'success' });
+    return new ApiResponse.OK('No routers found', { routers: [] }).expressRespond(res);
   }
 
   const routerFiles = await fs.readdir(routerDir);
@@ -37,15 +38,11 @@ export async function listRoutersController(req, res) {
 
   // If no routers are found, return a message
   if (routers.length === 0) {
-    return res.status(200).json({ message: 'No routers found', status: 'success' });
+    return ApiResponse.OK('No routers found', { routers }).expressRespond(res);
   }
 
   // Return the list of routers
-  return res.status(200).json({
-    message: `Found ${routers.length} routers`,
-    routers,
-    status: 'success'
-  });
+  return ApiResponse.OK(`Found ${routers.length} routers`, { routers }).expressRespond(res);
 }
 
 export async function getRouterController(req, res) {
@@ -55,12 +52,7 @@ export async function getRouterController(req, res) {
 
   const routerContent = await fs.readFile(path.join(routerDir, `${routerId}.router.toml`), 'utf8');
   const routerConfig = TOML.parse(routerContent);
-  return res.status(200).json({
-    message: `Details of router ${routerId}`,
-    router: { id: routerId, ...routerConfig },
-    status: 'success'
-  });
-
+  return ApiResponse.OK(`Details of router ${routerId}`, { router: { id: routerId, ...routerConfig } }).expressRespond(res);
 }
 
 export async function createRouterController(req, res) {
@@ -70,8 +62,23 @@ export async function createRouterController(req, res) {
   const routerDir = path.join(dataDir, 'routers');
 
   // Validate the VPC ID
-  if (vpcId && !(await VPCIdExists(vpcId))) {
-    return res.status(404).json({ message: `VPC ${vpcId} does not exist`, status: 'error' });
+  if (!vpcId || typeof vpcId !== 'string' || vpcId.trim() === '') {
+    return ApiResponse.BAD_REQUEST('VPC ID is required and must be a non-empty string').expressRespond(res);
+  }
+
+  // Validate the vpcId exists
+  if (!(await VPCIdExists(vpcId))) {
+    return ApiResponse.NOT_FOUND(`VPC ${vpcId} does not exist`).expressRespond(res);
+  }
+
+  // Validate the routerId
+  if (!routerId || typeof routerId !== 'string' || routerId.trim() === '') {
+    return ApiResponse.BAD_REQUEST('Router ID is required and must be a non-empty string').expressRespond(res);
+  }
+
+  // Ensure the router dose not already exist
+  if (await routerIdExists(routerId)) {
+    return ApiResponse.CONFLICT(`Router ${routerId} already exists`).expressRespond(res);
   }
 
   // Create the router configuration object
@@ -87,15 +94,10 @@ export async function createRouterController(req, res) {
   // Write the router configuration to a TOML file
   try {
     await fs.writeFile(path.join(routerDir, `${routerId}.router.toml`), TOML.stringify(routerConfig), 'utf8');
-    return res.status(201).json({
-      message: `Router ${routerId} created successfully`,
-      router: { id: routerId, ...routerConfig },
-      status: 'success'
-    });
-  }
-  catch (err) {
+    return ApiResponse.CREATED(`Router ${routerId} created successfully`, { router: { id: routerId, ...routerConfig } }).expressRespond(res);
+  } catch (err) {
     console.error(`Error writing router configuration for ${routerId}: ${err.message}`);
-    return res.status(500).json({ message: `Error creating router ${routerId}`, status: 'error' });
+    return ApiResponse.INTERNAL_SERVER_ERROR(`Error creating router ${routerId}`).expressRespond(res);
   }
 
 }
@@ -116,12 +118,7 @@ export async function updateRouterController(req, res) {
   // Write the updated router configuration back to the file
   await fs.writeFile(path.join(routerDir, `${routerId}.router.toml`), TOML.stringify(routerConfig), 'utf8');
 
-  return res.status(200).json({
-    message: `Router ${routerId} updated successfully`,
-    router: { id: routerId, ...routerConfig },
-    status: 'success'
-  });
-
+  return ApiResponse.OK(`Router ${routerId} updated successfully`, { router: { id: routerId, ...routerConfig } }).expressRespond(res);
 }
 
 export async function deleteRouterController(req, res) {
@@ -132,10 +129,10 @@ export async function deleteRouterController(req, res) {
   // Delete the router file
   try {
     await fs.unlink(path.join(routerDir, `${routerId}.router.toml`));
-    return res.status(200).json({ message: `Router ${routerId} deleted successfully`, status: 'success' });
+    return ApiResponse.OK(`Router ${routerId} deleted successfully`).expressRespond(res);
   } catch (err) {
     console.error(`Error deleting router ${routerId}:`, err);
-    return res.status(500).json({ message: `Error deleting router ${routerId}`, status: 'error' });
+    return ApiResponse.INTERNAL_SERVER_ERROR(`Error deleting router ${routerId}`).expressRespond(res);
   }
 }
 
@@ -160,13 +157,9 @@ export async function listRouterSubnetsController(req, res) {
       }
     }
 
-    return res.status(200).json({
-      message: `Found ${subnets.length} subnets in router ${routerId}`,
-      subnets,
-      status: 'success'
-    });
+    return ApiResponse.OK(`Found ${subnets.length} subnets in router ${routerId}`, { subnets }).expressRespond(res);
   } catch (error) {
     console.error('Error reading subnets:', error);
-    return res.status(500).json({ message: 'Error fetching subnets', status: 'error' });
+    return ApiResponse.INTERNAL_SERVER_ERROR('Error fetching subnets').expressRespond(res);
   }
 }

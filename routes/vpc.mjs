@@ -22,6 +22,6 @@ vpcRouter.put('/:vpcId', vpcExistsMiddleware, updateVPCController);
 vpcRouter.delete('/:vpcId', vpcExistsMiddleware, deleteVPCController);
 
 // GET /vpc/:vpcId/routers → list all routers in a specific VPC
-vpcRouter.get('/:vpcId/routers', listVPCRoutersController);
+vpcRouter.get('/:vpcId/routers', vpcExistsMiddleware, listVPCRoutersController);
 
 export default vpcRouter;

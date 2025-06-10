@@ -4,10 +4,10 @@ class ApiResponse {
   constructor() {
     this.data = null; // Data to be returned in the response
     this.status = 500; // HTTP status code
-    this.message = ""; // General message for the response
-    this.successMessage = ""; // Success message
-    this.errorMessage = ""; // Error message
-    this.warningMessage = ""; // Warning message
+    this.message = null; // General message for the response
+    this.successMessage = null; // Success message
+    this.errorMessage = null; // Error message
+    this.warningMessage = null; // Warning message
 
   }
 
@@ -18,9 +18,6 @@ class ApiResponse {
          @param {any} data - The data to be included in the response
          @return {ApiResponse} - Returns the instance for method chaining
          */
-        if (data === undefined || data === null) {
-            throw new TypeError('Data must be defined and not null');
-        }
         this.data = data;
         return this;
     }
@@ -210,7 +207,7 @@ class ApiResponse {
         return this.status !== null ? this.status : 500; // Default to 500 if no status is set
     }
 
-    static OK(data = null, message = "OK") {
+    static OK(message = "OK", data = null) {
         /* Static method to create a successful response with status 200.
          @param {any} data - The data to be included in the response
          @param {string} message - A message for the response
@@ -222,7 +219,7 @@ class ApiResponse {
             .setMessage(message);
     }
 
-    static CREATED(data = null, message = "Created") {
+    static CREATED(message = "Created", data = null) {
         /* Static method to create a successful response with status 201.
          @param {any} data - The data to be included in the response
          @param {string} message - A message for the response
@@ -234,31 +231,27 @@ class ApiResponse {
             .setMessage(message);
     }
 
-    static BAD_REQUEST(error = "Bad Request", message = "The request could not be understood by the server due to malformed syntax.") {
+    static BAD_REQUEST(error = "Bad Request") {
         /* Static method to create an error response with status 400.
          @param {string} error - An error message for the response
-         @param {string} message - A general message for the response
          @return {ApiResponse} - Returns an instance of ApiResponse with status 400
          */
         return new ApiResponse()
             .setStatus(400)
-            .setErrorMessage(error)
-            .setMessage(message);
+            .setErrorMessage(error);
     }
 
-    static UNAUTHORIZED(error = "Unauthorized", message = "Authentication is required and has failed or has not yet been provided.") {
+    static UNAUTHORIZED(error = "Unauthorized") {
         /* Static method to create an error response with status 401.
          @param {string} error - An error message for the response
-         @param {string} message - A general message for the response
          @return {ApiResponse} - Returns an instance of ApiResponse with status 401
          */
         return new ApiResponse()
             .setStatus(401)
-            .setErrorMessage(error)
-            .setMessage(message);
+            .setErrorMessage(error);
     }
 
-    static FORBIDDEN(error = "Forbidden", message = "The request was a valid request, but the server is refusing to respond to it.") {
+    static FORBIDDEN(error = "Forbidden") {
         /* Static method to create an error response with status 403.
          @param {string} error - An error message for the response
          @param {string} message - A general message for the response
@@ -270,43 +263,37 @@ class ApiResponse {
             .setMessage(message);
     }
 
-    static NOT_FOUND(error = "Not Found", message = "The requested resource could not be found but may be available in the future.") {
+    static NOT_FOUND(error = "Not Found") {
         /* Static method to create an error response with status 404.
          @param {string} error - An error message for the response
-         @param {string} message - A general message for the response
          @return {ApiResponse} - Returns an instance of ApiResponse with status 404
          */
         return new ApiResponse()
             .setStatus(404)
-            .setErrorMessage(error)
-            .setMessage(message);
+            .setErrorMessage(error);
     }
 
-    static INTERNAL_SERVER_ERROR(error = "Internal Server Error", message = "An unexpected condition was encountered by the server.") {
+    static INTERNAL_SERVER_ERROR(error = "Internal Server Error") {
         /* Static method to create an error response with status 500.
          @param {string} error - An error message for the response
-         @param {string} message - A general message for the response
          @return {ApiResponse} - Returns an instance of ApiResponse with status 500
          */
         return new ApiResponse()
             .setStatus(500)
-            .setErrorMessage(error)
-            .setMessage(message);
+            .setErrorMessage(error);
     }
 
-    static NOT_IMPLEMENTED(error = "Not Implemented", message = "The server does not support the functionality required to fulfill the request.") {
+    static NOT_IMPLEMENTED(error = "Not Implemented") {
         /* Static method to create an error response with status 501.
          @param {string} error - An error message for the response
-         @param {string} message - A general message for the response
          @return {ApiResponse} - Returns an instance of ApiResponse with status 501
          */
         return new ApiResponse()
             .setStatus(501)
-            .setErrorMessage(error)
-            .setMessage(message);
+            .setErrorMessage(error);
     }
 
-    static SERVICE_UNAVAILABLE(error = "Service Unavailable", message = "The server is currently unable to handle the request due to temporary overloading or maintenance of the server.") {
+    static SERVICE_UNAVAILABLE(error = "Service Unavailable") {
         /* Static method to create an error response with status 503.
          @param {string} error - An error message for the response
          @param {string} message - A general message for the response
@@ -314,23 +301,20 @@ class ApiResponse {
          */
         return new ApiResponse()
             .setStatus(503)
-            .setErrorMessage(error)
-            .setMessage(message);
+            .setErrorMessage(error);
     }
 
-    static GATEWAY_TIMEOUT(error = "Gateway Timeout", message = "The server, while acting as a gateway or proxy, did not receive a timely response from the upstream server.") {
+    static GATEWAY_TIMEOUT(error = "Gateway Timeout") {
         /* Static method to create an error response with status 504.
          @param {string} error - An error message for the response
-         @param {string} message - A general message for the response
          @return {ApiResponse} - Returns an instance of ApiResponse with status 504
          */
         return new ApiResponse()
             .setStatus(504)
-            .setErrorMessage(error)
-            .setMessage(message);
+            .setErrorMessage(error);
     }
 
-    static HTTP_VERSION_NOT_SUPPORTED(error = "HTTP Version Not Supported", message = "The server does not support the HTTP protocol version used in the request.") {
+    static HTTP_VERSION_NOT_SUPPORTED(error = "HTTP Version Not Supported") {
         /* Static method to create an error response with status 505.
          @param {string} error - An error message for the response
          @param {string} message - A general message for the response
@@ -338,20 +322,17 @@ class ApiResponse {
          */
         return new ApiResponse()
             .setStatus(505)
-            .setErrorMessage(error)
-            .setMessage(message);
+            .setErrorMessage(error);
     }
 
-    static NETWORK_AUTHENTICATION_REQUIRED(error = "Network Authentication Required", message = "The client needs to authenticate to gain network access.") {
+    static NETWORK_AUTHENTICATION_REQUIRED(error = "Network Authentication Required") {
         /* Static method to create an error response with status 511.
          @param {string} error - An error message for the response
-         @param {string} message - A general message for the response
          @return {ApiResponse} - Returns an instance of ApiResponse with status 511
          */
         return new ApiResponse()
             .setStatus(511)
-            .setErrorMessage(error)
-            .setMessage(message);
+            .setErrorMessage(error);
     }
 
     expressRespond(res) {
