@@ -47,7 +47,7 @@ export async function createVPCController(req, res) {
   });
 }
 
-export async function getVPCsController(req, res) {
+export async function listVPCController(req, res) {
   const dataDir = path.join(__dirname, '..', 'data');
   const vpcDir = path.join(dataDir, 'vpc');
 

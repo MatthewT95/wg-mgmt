@@ -1,13 +1,13 @@
 // routes/vpcs.mjs
 import express from 'express';
-import { createVPCController, getVPCsController,getVPCController,updateVPCController,deleteVPCController} from '../controllers/vpcController.mjs'; // Import the necessary controllers for VPC operations
+import { createVPCController, listVPCController,getVPCController,updateVPCController,deleteVPCController} from '../controllers/vpcController.mjs'; // Import the necessary controllers for VPC operations
 import { vpcExistsMiddleware } from '../utils/middleware.mjs';
 
 // Note the mergeParams option:
 const vpcRouter = express.Router({mergeParams: true});
 
 // GET /vpc/ → list all VPCs
-vpcRouter.get('/', getVPCsController);
+vpcRouter.get('/', listVPCController);
 
 // POST /vpc/ → create a new VPC
 vpcRouter.post('/', createVPCController);

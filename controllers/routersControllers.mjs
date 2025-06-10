@@ -8,7 +8,7 @@ import { VPCIdExists } from '../utils/vaildate.mjs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export async function getRoutersController(req, res) {
+export async function listRoutersController(req, res) {
   const dataDir = path.join(__dirname, '..', 'data');
   const routerDir = path.join(dataDir, 'routers');
 
