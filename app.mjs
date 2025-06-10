@@ -33,6 +33,14 @@ catch {
   fs.mkdirSync(subnetDir, { recursive: true });
 }
 
+// Ensure that remote directorie exists
+const routersDir = path.join(dataDir, 'remotes');
+try {
+  fs.accessSync(routersDir);
+} catch {
+  fs.mkdirSync(routersDir, { recursive: true });
+}
+
 app.use(express.json());
 
 // Import and use the vpcRouter
