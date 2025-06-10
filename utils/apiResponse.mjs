@@ -1,6 +1,6 @@
 
 // This module defines a class for creating structured API responses.
-export class ApiResponse {
+class ApiResponse {
   constructor() {
     this.data = null; // Data to be returned in the response
     this.status = 500; // HTTP status code
@@ -385,3 +385,5 @@ export class ApiResponse {
         res.status(status).json(content);
     }
 }
+
+export default ApiResponse;
