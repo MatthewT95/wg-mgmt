@@ -149,3 +149,35 @@ export async function deleteVPCController(req, res) {
     return res.status(404).json({ message: `VPC ${vpcId} not found`, status: 'error' });
   }
 }
+
+export async function listVPCRoutersController(req, res) {
+  const { vpcId } = req.params;
+  const dataDir = path.join(__dirname, '..', 'data');
+  const routerDir = path.join(dataDir, 'routers');
+
+  try {
+    // Read all router files in the directory
+    const files = await fs.readdir(routerDir);
+    const routers = [];
+
+    for (const file of files) {
+      if (file.endsWith('.router.toml')) {
+        const routerId = file.replace('.router.toml', '');
+        const routerContent = await fs.readFile(path.join(routerDir, file), 'utf8');
+        const routerConfig = TOML.parse(routerContent);
+        if (routerConfig.vpcId === vpcId) {
+          routers.push({ id: routerId, ...routerConfig });
+        }
+      }
+    }
+
+    return res.status(200).json({
+      message: `Found ${routers.length} routers in VPC ${vpcId}`,
+      routers,
+      status: 'success'
+    });
+  } catch (error) {
+    console.error('Error reading routers:', error);
+    return res.status(500).json({ message: 'Error fetching routers', status: 'error' });
+  }
+}

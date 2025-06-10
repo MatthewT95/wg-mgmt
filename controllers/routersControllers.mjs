@@ -138,3 +138,35 @@ export async function deleteRouterController(req, res) {
     return res.status(500).json({ message: `Error deleting router ${routerId}`, status: 'error' });
   }
 }
+
+export async function listRouterSubnetsController(req, res) {
+  const routerId = req.params.routerId;
+  const dataDir = path.join(__dirname, '..', 'data');
+  const subnetDir = path.join(dataDir, 'subnets');
+
+  try {
+    // Read all subnet files in the directory
+    const files = await fs.readdir(subnetDir);
+    const subnets = [];
+
+    for (const file of files) {
+      if (file.endsWith('.subnet.toml')) {
+        const subnetId = file.replace('.subnet.toml', '');
+        const subnetContent = await fs.readFile(path.join(subnetDir, file), 'utf8');
+        const subnetConfig = TOML.parse(subnetContent);
+        if (subnetConfig.routerId === routerId) {
+          subnets.push({ id: subnetId, ...subnetConfig });
+        }
+      }
+    }
+
+    return res.status(200).json({
+      message: `Found ${subnets.length} subnets in router ${routerId}`,
+      subnets,
+      status: 'success'
+    });
+  } catch (error) {
+    console.error('Error reading subnets:', error);
+    return res.status(500).json({ message: 'Error fetching subnets', status: 'error' });
+  }
+}

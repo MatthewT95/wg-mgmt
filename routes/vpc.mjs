@@ -1,6 +1,6 @@
 // routes/vpcs.mjs
 import express from 'express';
-import { createVPCController, listVPCController,getVPCController,updateVPCController,deleteVPCController} from '../controllers/vpcController.mjs'; // Import the necessary controllers for VPC operations
+import { createVPCController, listVPCController,getVPCController,updateVPCController,deleteVPCController,listVPCRoutersController} from '../controllers/vpcController.mjs'; // Import the necessary controllers for VPC operations
 import { vpcExistsMiddleware } from '../utils/middleware.mjs';
 
 // Note the mergeParams option:
@@ -20,5 +20,8 @@ vpcRouter.put('/:vpcId', vpcExistsMiddleware, updateVPCController);
 
 // DELETE /vpc/:vpcId/delete → delete a specific VPC configuration
 vpcRouter.delete('/:vpcId', vpcExistsMiddleware, deleteVPCController);
+
+// GET /vpc/:vpcId/routers → list all routers in a specific VPC
+vpcRouter.get('/:vpcId/routers', listVPCRoutersController);
 
 export default vpcRouter;

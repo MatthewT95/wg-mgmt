@@ -1,6 +1,6 @@
 // routes/vpcs.mjs
 import express from 'express';
-import { listRoutersController,getRouterController,createRouterController,updateRouterController,deleteRouterController} from '../controllers/routersControllers.mjs';
+import { listRoutersController,getRouterController,createRouterController,updateRouterController,deleteRouterController,listRouterSubnetsController} from '../controllers/routersControllers.mjs';
 import { routerExistsMiddleware } from '../utils/middleware.mjs';
 
 // Note the mergeParams option:
@@ -20,5 +20,8 @@ routerRouter.put('/:routerId', routerExistsMiddleware, updateRouterController);
 
 // DELETE /router/:routerId → delete a specific router configuration
 routerRouter.delete('/:routerId', routerExistsMiddleware, deleteRouterController);
+
+// GET /router/:routerId/subnets → list all subnets in a specific router
+routerRouter.get('/:routerId/subnets', listRouterSubnetsController);
 
 export default routerRouter;
